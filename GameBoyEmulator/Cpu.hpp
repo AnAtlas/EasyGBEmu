@@ -52,9 +52,9 @@ private:
 	unsigned short add2(unsigned short v1, unsigned short v2);
 
 	//Instruction functions
-	void nop(std::vector<unsigned char> parms);
-	void ld_bc_nn(std::vector<unsigned char> parms);
-	void ld_bcp_a(std::vector<unsigned char> parms);
+	void nop(std::vector<unsigned char> parms);			//0x00
+	void ld_bc_nn(std::vector<unsigned char> parms);	//0x01
+	void ld_bcp_a(std::vector<unsigned char> parms);	//0x02
 	void inc_bc(std::vector<unsigned char> parms);
 	void inc_b(std::vector<unsigned char> parms);
 	void dec_b(std::vector<unsigned char> parms);
@@ -62,15 +62,26 @@ private:
 	void rlca(std::vector<unsigned char> parms);
 	void ld_nnp_sp(std::vector<unsigned char> parms);
 	void add_hl_bc(std::vector<unsigned char> parms);
-	void ld_a_bcp(std::vector<unsigned char> parms);
+	void ld_a_bcp(std::vector<unsigned char> parms);	//0x0A
 	void dec_bc(std::vector<unsigned char> parms);
 	void inc_c(std::vector<unsigned char> parms);
 	void dec_c(std::vector<unsigned char> parms);
 	void ld_c_n(std::vector<unsigned char> parms);
 	void rrca(std::vector<unsigned char> parms);
-	void stop(std::vector<unsigned char> parms);
+	void stop(std::vector<unsigned char> parms);		//0x10
 	void ld_de_nn(std::vector<unsigned char> parms);
 	void ld_dep_a(std::vector<unsigned char> parms);
 	void inc_de(std::vector<unsigned char> parms);
 	void inc_d(std::vector<unsigned char> parms);
+	void dec_d(std::vector<unsigned char> parms);
+	void ld_d_n(std::vector<unsigned char> parms);		//0x1A
+	void rla(std::vector<unsigned char> parms);
+	void jr_n(std::vector<unsigned char> parms);
+	void add_hl_de(std::vector<unsigned char> parms);
+	void ld_a_dep(std::vector<unsigned char> parms);
+	void dec_de(std::vector<unsigned char> parms);
+	void inc_e(std::vector<unsigned char> parms);
+	void dec_e(std::vector<unsigned char> parms);
+	void ld_e_n(std::vector<unsigned char> parms);
+	void rra(std::vector<unsigned char> parms);
 };

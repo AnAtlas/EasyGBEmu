@@ -64,6 +64,17 @@ void Cpu::generateInstructions() {
 	instructions.push_back(Instruction("LD (DE), A",		0, 8, &Cpu::ld_dep_a));		//0x12
 	instructions.push_back(Instruction("INC DE",			0, 8, &Cpu::inc_de));		//0x13
 	instructions.push_back(Instruction("INC D",				0, 4, &Cpu::inc_d));		//0x14
+	instructions.push_back(Instruction("DEC D",				0, 4, &Cpu::dec_d));		//0x15
+	instructions.push_back(Instruction("LD D, 0xXX",		1, 8, &Cpu::ld_d_n));		//0x16
+	instructions.push_back(Instruction("RLA",				0, 4, &Cpu::rla));			//0x17
+	instructions.push_back(Instruction("JR, 0xXX",			1,12, &Cpu::jr_n));			//0x18
+	instructions.push_back(Instruction("ADD HL, DE",		0, 8, &Cpu::add_hl_de));	//0x19
+	instructions.push_back(Instruction("LD A, (DE)",		0, 8, &Cpu::ld_a_dep));		//0x1A
+	instructions.push_back(Instruction("DEC DE",			0, 8, &Cpu::dec_de));		//0x1B
+	instructions.push_back(Instruction("INC E",				0, 4, &Cpu::inc_e));		//0x1C
+	instructions.push_back(Instruction("DEC E",				0, 4, &Cpu::dec_e));		//0x1D
+	instructions.push_back(Instruction("LD E, 0xXX",		1, 8, &Cpu::ld_e_n));		//0x1E
+	instructions.push_back(Instruction("RRA",				0, 4, &Cpu::rra));			//0x1F
 }
 
 bool Cpu::checkFlag(unsigned char flag) {
@@ -207,7 +218,7 @@ void Cpu::ld_b_n(std::vector<unsigned char> parms) {
 	clock.t = 8;
 }
 
-//0x07 Rotate register a n bits left
+//0x07 Rotate register a n bits left, old bit 7 to Carry flag
 void Cpu::rlca(std::vector<unsigned char> parms) {
 	clearAllFlags();
 
@@ -345,6 +356,107 @@ void Cpu::inc_de(std::vector<unsigned char> parms) {
 //0x14 increment d register, Flags(Z,0,H)
 void Cpu::inc_d(std::vector<unsigned char> parms) {
 	registers.d = inc(registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x15 decrement d register, Flags(Z,1,H,-)
+void Cpu::dec_d(std::vector<unsigned char> parms) {
+	registers.d = dec(registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x16 load byte into register d, Flags(-,-,-,-)
+void Cpu::ld_d_n(std::vector<unsigned char> parms) {
+	registers.d = parms[0];
+
+	clock.m = 2;
+	clock.t = 8;
+}
+
+//0x17 Rotate A left through carry flag, new bit 0 = old carry flag, Flags(0,0,0,C)
+void Cpu::rla(std::vector<unsigned char> parms) {
+	unsigned char carry = checkFlag(Flags::Carry);
+	clearAllFlags();
+
+	if (registers.a & 0x80)
+		setFlag(Flags::Carry);
+	registers.a = registers.a << 1;
+	registers.a += carry;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x18 Jump to current address + n
+void Cpu::jr_n(std::vector<unsigned char> parms) {
+	registers.pc += (signed char)parms[0];
+
+}
+
+//0x19 Add de register to hl register, Flags(-,0,H,C)
+void Cpu::add_hl_de(std::vector<unsigned char> parms) {
+	clearFlag(Flags::Subtract);
+
+	registers.hl = add2(registers.hl, registers.de);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x1A Store byte at address (de) into register a, Flags(-,-,-,-)
+void Cpu::ld_a_dep(std::vector<unsigned char> parms) {
+	registers.a = memory.readByte(registers.de);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x1B Decrement register de, Flags(-,-,-,-)
+void Cpu::dec_de(std::vector<unsigned char> parms) {
+	registers.de--;
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x1C Increment register e, Flags(Z,0,H,-)
+void Cpu::inc_e(std::vector<unsigned char> parms) {
+	registers.e = inc(registers.e);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x1D Decrement register e, Flags(Z,1,H,-)
+void Cpu::dec_e(std::vector<unsigned char> parms) {
+	registers.e = dec(registers.e);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x1E Store byte n into register e, Flags(-,-,-,-)
+void Cpu::ld_e_n(std::vector<unsigned char> parms) {
+	registers.e = parms[0];
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x1F Rotate register a right through carry flag, Flags(0,0,0,C)
+void Cpu::rra(std::vector<unsigned char> parms) {
+	unsigned char carry = checkFlag(Flags::Carry);
+	clearAllFlags();
+
+	if (registers.a & 0x01)
+		setFlag(Flags::Carry);
+	registers.a >>= 1;
+
+	registers.a += (carry << 7);
 
 	clock.m = 1;
 	clock.t = 4;
