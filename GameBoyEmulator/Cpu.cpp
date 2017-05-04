@@ -42,7 +42,7 @@ void Cpu::clearRegisters() {
 }
 
 void Cpu::generateInstructions() {
-	//Name string, number of parameters(in bytes), number of cycles, function
+	//Name string, number of parameters(in bytes, not counting opcode byte), number of cycles, function
 	instructions.push_back(Instruction("NOP",				0, 4, &Cpu::nop));			//0x00
 	instructions.push_back(Instruction("LD BC, 0xXXXX",		2,12, &Cpu::ld_bc_nn));		//0x01	
 	instructions.push_back(Instruction("LD (BC), A",		0, 8, &Cpu::ld_bcp_a));		//0x02
@@ -60,6 +60,10 @@ void Cpu::generateInstructions() {
 	instructions.push_back(Instruction("LD C, 0xXX",		1, 8, &Cpu::ld_c_n));		//0x0E
 	instructions.push_back(Instruction("RRCA",				0, 4, &Cpu::rrca));			//0x0F
 	instructions.push_back(Instruction("STOP",				1, 4, &Cpu::stop));			//0x10
+	instructions.push_back(Instruction("LD DE, 0xXXXX",		2,12, &Cpu::ld_de_nn));		//0x11
+	instructions.push_back(Instruction("LD (DE), A",		0, 8, &Cpu::ld_dep_a));		//0x12
+	instructions.push_back(Instruction("INC DE",			0, 8, &Cpu::inc_de));		//0x13
+	instructions.push_back(Instruction("INC D",				0, 4, &Cpu::inc_d));		//0x14
 }
 
 bool Cpu::checkFlag(unsigned char flag) {
@@ -76,6 +80,10 @@ void Cpu::clearFlag(unsigned char flag) {
 
 void Cpu::clearAllFlags() {
 	registers.f = 0;
+}
+
+void Cpu::reset() {
+	stopped = false;
 }
 
 void Cpu::step() {
@@ -303,8 +311,8 @@ void Cpu::rrca(std::vector<unsigned char> parms) {
 
 //0x10 Stop, hald cpu and lcd display until button pressed
 void Cpu::stop(std::vector<unsigned char> parms) {
+	stopped = true;
 
-	std::cout << "Stop not implemented!!!";
 	clock.m = 2;
 	clock.t = 4;
 }

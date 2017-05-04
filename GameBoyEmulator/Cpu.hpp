@@ -34,12 +34,14 @@ private:
 	Registers registers;
 	Clock clock;
 	Memory memory;
+	bool stopped;
 
 	void clearRegisters();
 	void generateInstructions();
 
 	std::vector<Instruction> instructions;
 
+	void reset();
 	void setFlag(unsigned char flag);
 	void clearFlag(unsigned char flag);
 	bool checkFlag(unsigned char flag);
