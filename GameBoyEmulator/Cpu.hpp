@@ -27,6 +27,9 @@ public:
 	void printRegisters();
 	void step();
 
+	//Debug
+	void runCommand(std::string command);
+
 private:
 	Registers registers;
 	Clock clock;

@@ -1,13 +1,36 @@
 #include "Cpu.hpp"
 #include <iostream>
 #include <string>
+#include <sstream>
 
-Cpu::Cpu() {
+Cpu::Cpu(){
 	clearRegisters();
 	generateInstructions();
 }
 
 
+void Cpu::runCommand(std::string command) {
+	std::cout << command;
+
+	//Break apart command
+	std::vector <std::string> ps;
+	std::stringstream ss;
+	ss.str(command);
+	std::string item;
+	while (std::getline(ss, item, ' ')) {
+		ps.push_back(item);
+	}
+	if (ps[0] == "p")
+		printRegisters();
+	else {
+		unsigned char op = (unsigned char)(std::stoi(ps[0]));
+		std::vector<unsigned char> parms;
+		for (int i = 1; i < ps.size(); i++) {
+			parms.push_back((unsigned char)(std::stoi(ps[i])));
+		}
+		(this->*(instructions[op].fp))(parms);
+	}
+}
 
 void Cpu::clearRegisters() {
 	registers.af = 0;
@@ -19,10 +42,24 @@ void Cpu::clearRegisters() {
 }
 
 void Cpu::generateInstructions() {
-	//Name string, number of parameters, number of cycles, function
-	instructions.push_back(Instruction("NOP", 0, 4, &Cpu::nop));					//0x00
-	instructions.push_back(Instruction("LD BC, 0xXXXX", 2, 12, &Cpu::ld_bc_nn));	//0x01	
-	instructions.push_back(Instruction("LD_BC_A", 0, 8, &Cpu::ld_bcp_a));			//0x02
+	//Name string, number of parameters(in bytes), number of cycles, function
+	instructions.push_back(Instruction("NOP",				0, 4, &Cpu::nop));			//0x00
+	instructions.push_back(Instruction("LD BC, 0xXXXX",		2,12, &Cpu::ld_bc_nn));		//0x01	
+	instructions.push_back(Instruction("LD (BC), A",		0, 8, &Cpu::ld_bcp_a));		//0x02
+	instructions.push_back(Instruction("INC BC",			0, 8, &Cpu::inc_bc));		//0x03
+	instructions.push_back(Instruction("INC B",				0, 4, &Cpu::inc_b));		//0x04
+	instructions.push_back(Instruction("DEC B",				0, 4, &Cpu::dec_b));		//0x05
+	instructions.push_back(Instruction("LD B, 0xXX",		1, 8, &Cpu::ld_b_n));		//0x06
+	instructions.push_back(Instruction("RLCA",				0, 4, &Cpu::rlca));			//0x07
+	instructions.push_back(Instruction("LD (0xXXXX), SP",	2,20, &Cpu::ld_nnp_sp));	//0x08
+	instructions.push_back(Instruction("ADD HL, BC",		0, 8, &Cpu::add_hl_bc));	//0x09
+	instructions.push_back(Instruction("LD A, (BC)",		0, 8, &Cpu::ld_a_bcp));		//0x0A
+	instructions.push_back(Instruction("DEC BC",			0, 8, &Cpu::dec_bc));		//0x0B
+	instructions.push_back(Instruction("INC C",				0, 4, &Cpu::inc_c));		//0x0C
+	instructions.push_back(Instruction("DEC C",				0, 4, &Cpu::dec_c));		//0x0D
+	instructions.push_back(Instruction("LD C, 0xXX",		1, 8, &Cpu::ld_c_n));		//0x0E
+	instructions.push_back(Instruction("RRCA",				0, 4, &Cpu::rrca));			//0x0F
+	instructions.push_back(Instruction("STOP",				1, 4, &Cpu::stop));			//0x10
 }
 
 bool Cpu::checkFlag(unsigned char flag) {
@@ -110,16 +147,21 @@ void Cpu::printRegisters() {
 
 //0x00 Do nothing
 void Cpu::nop(std::vector<unsigned char> parms) {
+	std::cout << "NOP" << std::endl;
 	clock.m = 1;
 	clock.t = 4;
 }
 
 //0x01 Store 2 byte value, nn, into the bc register
 void Cpu::ld_bc_nn(std::vector<unsigned char> parms) {
-	unsigned short t = (parms[0] << 8) | parms[1];
-	registers.bc = t;
-	clock.m = 3;
-	clock.t = 12;
+	if (parms.size() != 2)
+		std::cout << "0x01:LD_BC_NN invalid parameter amount";
+	else {
+		unsigned short t = (parms[0] << 8) | parms[1];
+		registers.bc = t;
+		clock.m = 3;
+		clock.t = 12;
+	}
 }
 
 //0x02 Store the value in register a, into the address pointed to by register bc
@@ -259,8 +301,43 @@ void Cpu::rrca(std::vector<unsigned char> parms) {
 	clock.t = 4;
 }
 
-void Cpu::stop(std::vector<unsigned char> parms);
-void Cpu::ld_de_nn(std::vector<unsigned char> parms);
-void Cpu::ld_dep_a(std::vector<unsigned char> parms);
-void Cpu::inc_de(std::vector<unsigned char> parms);
-void Cpu::inc_d(std::vector<unsigned char> parms);
+//0x10 Stop, hald cpu and lcd display until button pressed
+void Cpu::stop(std::vector<unsigned char> parms) {
+
+	std::cout << "Stop not implemented!!!";
+	clock.m = 2;
+	clock.t = 4;
+}
+
+//0x11 Store short into register de
+void Cpu::ld_de_nn(std::vector<unsigned char> parms) {
+	unsigned short a = (parms[0] << 8) | parms[1];
+	registers.de = a;
+	
+	clock.m = 3;
+	clock.t = 12;
+}
+
+//0x12 Store register a into memory location de
+void Cpu::ld_dep_a(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.de, registers.a);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x13 increment de register
+void Cpu::inc_de(std::vector<unsigned char> parms) {
+	registers.de++;
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x14 increment d register, Flags(Z,0,H)
+void Cpu::inc_d(std::vector<unsigned char> parms) {
+	registers.d = inc(registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
