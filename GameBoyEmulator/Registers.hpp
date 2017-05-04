@@ -1,14 +1,13 @@
 #pragma once
 
+typedef enum Flags{
+	Zero = (1 << 7),
+	Subtract = (1 << 6),
+	HalfCarry = (1 << 5),
+	Carry = (1 << 4)
+};
+
 struct Registers{
-	struct{
-		unsigned char ZeroFlag = (1 << 7);
-		unsigned char SubtractFlag = (1 << 6);
-		unsigned char HalfCarryFlag = (1 << 5);
-		unsigned char CarryFlag = (1 << 4);
-	}Flags;
-
-
 	//Registers a and f
 	struct {
 		union {
