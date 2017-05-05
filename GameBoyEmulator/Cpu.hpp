@@ -168,8 +168,8 @@ private:
 	void ld_hlp_c(std::vector<unsigned char> parms);
 	void ld_hlp_d(std::vector<unsigned char> parms);
 	void ld_hlp_e(std::vector<unsigned char> parms);
-	void ld_hl_h(std::vector<unsigned char> parms);
-	void ld_hl_l(std::vector<unsigned char> parms);
+	void ld_hlp_h(std::vector<unsigned char> parms);
+	void ld_hlp_l(std::vector<unsigned char> parms);
 	void halt(std::vector<unsigned char> parms);
 	void ld_hlp_a(std::vector<unsigned char> parms);
 	void ld_a_b(std::vector<unsigned char> parms);
@@ -284,7 +284,7 @@ private:
 	void ld_nnp_a(std::vector<unsigned char> parms);
 	void xor_n(std::vector<unsigned char> parms);
 	void rst_28(std::vector<unsigned char> parms);		//0xEF
-	void ld_ffap_np(std::vector<unsigned char> parms);
+	void ld_a_ffnp(std::vector<unsigned char> parms);
 	void pop_af(std::vector<unsigned char> parms);
 	void ld_a_cp(std::vector<unsigned char> parms);
 	void di(std::vector<unsigned char> parms);
@@ -297,4 +297,6 @@ private:
 	void ei(std::vector<unsigned char> parms);
 	void cp_n(std::vector<unsigned char> parms);
 	void rst_38(std::vector<unsigned char> parms);
+
+	void null(std::vector<unsigned char> parms);
 };
