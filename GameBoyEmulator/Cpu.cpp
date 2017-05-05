@@ -106,6 +106,198 @@ void Cpu::generateInstructions() {
 	instructions.push_back(Instruction("DEC A",				0, 4, &Cpu::dec_a));		//0x3D
 	instructions.push_back(Instruction("LD A, 0xXX",		1, 8, &Cpu::ld_a_n));		//0x3E
 	instructions.push_back(Instruction("CCF",				0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("LD B, B",			0, 4, &Cpu::ld_b_b));		//0x40
+	instructions.push_back(Instruction("LD B, C",			0, 4, &Cpu::ld_b_c));		//0x41
+	instructions.push_back(Instruction("LD B, D",			0, 4, &Cpu::ld_b_d));		//0x42
+	instructions.push_back(Instruction("LD B, E",			0, 4, &Cpu::ld_b_e));		//0x43
+	instructions.push_back(Instruction("LD B, H",			0, 4, &Cpu::ld_b_h));		//0x44
+	instructions.push_back(Instruction("LD B, L",			0, 4, &Cpu::dec_hlp));		//0x45
+	instructions.push_back(Instruction("LD B, (HL)",		0, 8, &Cpu::ld_hlp_n));		//0x46
+	instructions.push_back(Instruction("LD B, A",			0, 4, &Cpu::scf));			//0x47
+	instructions.push_back(Instruction("LD C, B",			0, 4, &Cpu::jr_c_n));		//0x48
+	instructions.push_back(Instruction("LD C, C",			0, 8, &Cpu::add_hl_sp));	//0x49
+	instructions.push_back(Instruction("LD C, D",			0, 8, &Cpu::ld_a_hlpd));	//0x4A
+	instructions.push_back(Instruction("LD C, E",			0, 8, &Cpu::dec_sp));		//0x4B
+	instructions.push_back(Instruction("LD C, H",			0, 4, &Cpu::inc_a));		//0x4C
+	instructions.push_back(Instruction("LD C, L",			0, 4, &Cpu::dec_a));		//0x4D
+	instructions.push_back(Instruction("LD C, (HL)",		0, 8, &Cpu::ld_a_n));		//0x4E
+	instructions.push_back(Instruction("LD C, A",			0, 4, &Cpu::ccf));			//0x4F
+	instructions.push_back(Instruction("JR NC, 0xXX",1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
+	instructions.push_back(Instruction("JR NC, 0xXX", 1, 12, &Cpu::jr_nc_n));		//0x30
+	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
+	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
+	instructions.push_back(Instruction("INC_SP", 0, 8, &Cpu::inc_sp));		//0x33
+	instructions.push_back(Instruction("INC (HL)", 0, 12, &Cpu::inc_hlp));		//0x34
+	instructions.push_back(Instruction("DEC (HL)", 0, 12, &Cpu::dec_hlp));		//0x35
+	instructions.push_back(Instruction("LD (HL), 0xXX", 1, 12, &Cpu::ld_hlp_n));		//0x36
+	instructions.push_back(Instruction("SCF", 0, 4, &Cpu::scf));			//0x37
+	instructions.push_back(Instruction("JR C, 0xXX", 1, 12, &Cpu::jr_c_n));		//0x38
+	instructions.push_back(Instruction("ADD HL, SP", 0, 8, &Cpu::add_hl_sp));	//0x39
+	instructions.push_back(Instruction("LD A, (HL-)", 0, 8, &Cpu::ld_a_hlpd));	//0x3A
+	instructions.push_back(Instruction("DEC SP", 0, 8, &Cpu::dec_sp));		//0x3B
+	instructions.push_back(Instruction("INC A", 0, 4, &Cpu::inc_a));		//0x3C
+	instructions.push_back(Instruction("DEC A", 0, 4, &Cpu::dec_a));		//0x3D
+	instructions.push_back(Instruction("LD A, 0xXX", 1, 8, &Cpu::ld_a_n));		//0x3E
+	instructions.push_back(Instruction("CCF", 0, 4, &Cpu::ccf));			//0x3F
 }
 
 bool Cpu::checkFlag(unsigned char flag) {
@@ -802,3 +994,185 @@ void Cpu::ccf(std::vector<unsigned char> parms) {
 	clock.m = 1;
 	clock.t = 4;
 }
+
+void Cpu::ld_b_b(std::vector<unsigned char> parms);		//0x40
+void Cpu::ld_b_c(std::vector<unsigned char> parms);
+void Cpu::ld_b_d(std::vector<unsigned char> parms);
+void Cpu::ld_b_e(std::vector<unsigned char> parms);
+void Cpu::ld_b_h(std::vector<unsigned char> parms);
+void Cpu::ld_b_l(std::vector<unsigned char> parms);
+void Cpu::ld_b_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_b_a(std::vector<unsigned char> parms);
+void Cpu::ld_c_b(std::vector<unsigned char> parms);
+void Cpu::ld_c_c(std::vector<unsigned char> parms);
+void Cpu::ld_c_d(std::vector<unsigned char> parms);		//0x4A
+void Cpu::ld_c_e(std::vector<unsigned char> parms);
+void Cpu::ld_c_h(std::vector<unsigned char> parms);
+void Cpu::ld_c_l(std::vector<unsigned char> parms);
+void Cpu::ld_c_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_c_a(std::vector<unsigned char> parms);
+void Cpu::ld_d_b(std::vector<unsigned char> parms);		//0x50
+void Cpu::ld_d_c(std::vector<unsigned char> parms);
+void Cpu::ld_d_d(std::vector<unsigned char> parms);
+void Cpu::ld_d_e(std::vector<unsigned char> parms);
+void Cpu::ld_d_h(std::vector<unsigned char> parms);
+void Cpu::ld_d_l(std::vector<unsigned char> parms);
+void Cpu::ld_d_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_d_a(std::vector<unsigned char> parms);
+void Cpu::ld_e_b(std::vector<unsigned char> parms);
+void Cpu::ld_e_c(std::vector<unsigned char> parms);
+void Cpu::ld_e_d(std::vector<unsigned char> parms);		//0x5A
+void Cpu::ld_e_e(std::vector<unsigned char> parms);
+void Cpu::ld_e_h(std::vector<unsigned char> parms);
+void Cpu::ld_e_l(std::vector<unsigned char> parms);
+void Cpu::ld_e_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_e_a(std::vector<unsigned char> parms);
+void Cpu::ld_h_b(std::vector<unsigned char> parms);		//0x60
+void Cpu::ld_h_c(std::vector<unsigned char> parms);
+void Cpu::ld_h_d(std::vector<unsigned char> parms);
+void Cpu::ld_h_e(std::vector<unsigned char> parms);
+void Cpu::ld_h_h(std::vector<unsigned char> parms);
+void Cpu::ld_h_l(std::vector<unsigned char> parms);
+void Cpu::ld_h_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_h_a(std::vector<unsigned char> parms);
+void Cpu::ld_l_b(std::vector<unsigned char> parms);
+void Cpu::ld_l_c(std::vector<unsigned char> parms);
+void Cpu::ld_l_d(std::vector<unsigned char> parms);
+void Cpu::ld_l_e(std::vector<unsigned char> parms);
+void Cpu::ld_l_h(std::vector<unsigned char> parms);
+void Cpu::ld_l_l(std::vector<unsigned char> parms);
+void Cpu::ld_l_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_l_a(std::vector<unsigned char> parms);		//0x6F
+void Cpu::ld_hlp_b(std::vector<unsigned char> parms);
+void Cpu::ld_hlp_c(std::vector<unsigned char> parms);
+void Cpu::ld_hlp_d(std::vector<unsigned char> parms);
+void Cpu::ld_hlp_e(std::vector<unsigned char> parms);
+void Cpu::ld_hl_h(std::vector<unsigned char> parms);
+void Cpu::ld_hl_l(std::vector<unsigned char> parms);
+void Cpu::halt(std::vector<unsigned char> parms);
+void Cpu::ld_hlp_a(std::vector<unsigned char> parms);
+void Cpu::ld_a_b(std::vector<unsigned char> parms);
+void Cpu::ld_a_c(std::vector<unsigned char> parms);
+void Cpu::ld_a_d(std::vector<unsigned char> parms);
+void Cpu::ld_a_e(std::vector<unsigned char> parms);
+void Cpu::ld_a_h(std::vector<unsigned char> parms);
+void Cpu::ld_a_l(std::vector<unsigned char> parms);
+void Cpu::ld_a_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_a_a(std::vector<unsigned char> parms);		//0x7F
+void Cpu::add_a_b(std::vector<unsigned char> parms);
+void Cpu::add_a_c(std::vector<unsigned char> parms);
+void Cpu::add_a_d(std::vector<unsigned char> parms);
+void Cpu::add_a_e(std::vector<unsigned char> parms);
+void Cpu::add_a_h(std::vector<unsigned char> parms);
+void Cpu::add_a_l(std::vector<unsigned char> parms);
+void Cpu::add_a_hlp(std::vector<unsigned char> parms);
+void Cpu::add_a_a(std::vector<unsigned char> parms);
+void Cpu::adc_a_b(std::vector<unsigned char> parms);
+void Cpu::adc_a_c(std::vector<unsigned char> parms);
+void Cpu::adc_a_d(std::vector<unsigned char> parms);
+void Cpu::adc_a_e(std::vector<unsigned char> parms);
+void Cpu::adc_a_h(std::vector<unsigned char> parms);
+void Cpu::adc_a_l(std::vector<unsigned char> parms);
+void Cpu::adc_a_hlp(std::vector<unsigned char> parms);
+void Cpu::adc_a_a(std::vector<unsigned char> parms);		//0x8F
+void Cpu::sub_b(std::vector<unsigned char> parms);
+void Cpu::sub_c(std::vector<unsigned char> parms);
+void Cpu::sub_d(std::vector<unsigned char> parms);
+void Cpu::sub_e(std::vector<unsigned char> parms);
+void Cpu::sub_h(std::vector<unsigned char> parms);
+void Cpu::sub_l(std::vector<unsigned char> parms);
+void Cpu::sub_hlp(std::vector<unsigned char> parms);
+void Cpu::sub_a(std::vector<unsigned char> parms);
+void Cpu::sbc_a_b(std::vector<unsigned char> parms);
+void Cpu::sbc_a_c(std::vector<unsigned char> parms);
+void Cpu::sbc_a_d(std::vector<unsigned char> parms);
+void Cpu::sbc_a_e(std::vector<unsigned char> parms);
+void Cpu::sbc_a_h(std::vector<unsigned char> parms);
+void Cpu::sbc_a_l(std::vector<unsigned char> parms);
+void Cpu::sbc_a_hlp(std::vector<unsigned char> parms);
+void Cpu::sbc_a_a(std::vector<unsigned char> parms);		//0x9F
+void Cpu::and_b(std::vector<unsigned char> parms);
+void Cpu::and_c(std::vector<unsigned char> parms);
+void Cpu::and_d(std::vector<unsigned char> parms);
+void Cpu::and_e(std::vector<unsigned char> parms);
+void Cpu::and_h(std::vector<unsigned char> parms);
+void Cpu::and_l(std::vector<unsigned char> parms);
+void Cpu::and_hlp(std::vector<unsigned char> parms);
+void Cpu::and_a(std::vector<unsigned char> parms);
+void Cpu::xor_b(std::vector<unsigned char> parms);
+void Cpu::xor_c(std::vector<unsigned char> parms);
+void Cpu::xor_d(std::vector<unsigned char> parms);
+void Cpu::xor_e(std::vector<unsigned char> parms);
+void Cpu::xor_h(std::vector<unsigned char> parms);
+void Cpu::xor_l(std::vector<unsigned char> parms);
+void Cpu::xor_hlp(std::vector<unsigned char> parms);
+void Cpu::xor_a(std::vector<unsigned char> parms);		//0xAF
+void Cpu::or_b(std::vector<unsigned char> parms);
+void Cpu::or_c(std::vector<unsigned char> parms);
+void Cpu::or_d(std::vector<unsigned char> parms);
+void Cpu::or_e(std::vector<unsigned char> parms);
+void Cpu::or_h(std::vector<unsigned char> parms);
+void Cpu::or_l(std::vector<unsigned char> parms);
+void Cpu::or_hlp(std::vector<unsigned char> parms);
+void Cpu::or_a(std::vector<unsigned char> parms);
+void Cpu::cp_b(std::vector<unsigned char> parms);
+void Cpu::cp_c(std::vector<unsigned char> parms);
+void Cpu::cp_d(std::vector<unsigned char> parms);
+void Cpu::cp_e(std::vector<unsigned char> parms);
+void Cpu::cp_h(std::vector<unsigned char> parms);
+void Cpu::cp_l(std::vector<unsigned char> parms);
+void Cpu::cp_hlp(std::vector<unsigned char> parms);
+void Cpu::cp_a(std::vector<unsigned char> parms);		//0xBF
+void Cpu::ret_nz(std::vector<unsigned char> parms);
+void Cpu::pop_bc(std::vector<unsigned char> parms);
+void Cpu::jp_nz_nn(std::vector<unsigned char> parms);
+void Cpu::jp_nn(std::vector<unsigned char> parms);
+void Cpu::call_nz_nn(std::vector<unsigned char> parms);
+void Cpu::push_bc(std::vector<unsigned char> parms);
+void Cpu::add_a_n(std::vector<unsigned char> parms);
+void Cpu::rst_0(std::vector<unsigned char> parms);
+void Cpu::ret_z(std::vector<unsigned char> parms);
+void Cpu::ret(std::vector<unsigned char> parms);
+void Cpu::jp_z_nn(std::vector<unsigned char> parms);
+void Cpu::cb(std::vector<unsigned char> parms);
+void Cpu::call_z_nn(std::vector<unsigned char> parms);
+void Cpu::call_nn(std::vector<unsigned char> parms);
+void Cpu::adc_a_n(std::vector<unsigned char> parms);
+void Cpu::rst_08(std::vector<unsigned char> parms);		//0xCF
+void Cpu::ret_nc(std::vector<unsigned char> parms);
+void Cpu::pop_de(std::vector<unsigned char> parms);
+void Cpu::jp_nc_nn(std::vector<unsigned char> parms);
+void Cpu::call_nc_nn(std::vector<unsigned char> parms);
+void Cpu::push_de(std::vector<unsigned char> parms);
+void Cpu::sub_n(std::vector<unsigned char> parms);
+void Cpu::rst_10(std::vector<unsigned char> parms);
+void Cpu::ret_c(std::vector<unsigned char> parms);
+void Cpu::reti(std::vector<unsigned char> parms);
+void Cpu::jp_c_nn(std::vector<unsigned char> parms);
+void Cpu::call_c_nn(std::vector<unsigned char> parms);
+void Cpu::sbc_a_n(std::vector<unsigned char> parms);
+void Cpu::rst_18(std::vector<unsigned char> parms);		//0xDF
+void Cpu::ld_ffnp_a(std::vector<unsigned char> parms);
+void Cpu::pop_hl(std::vector<unsigned char> parms);
+void Cpu::ld_cp_a(std::vector<unsigned char> parms);
+void Cpu::push_hl(std::vector<unsigned char> parms);
+void Cpu::and_n(std::vector<unsigned char> parms);
+void Cpu::rst_20(std::vector<unsigned char> parms);
+void Cpu::add_sp_n(std::vector<unsigned char> parms);
+void Cpu::jp_hlp(std::vector<unsigned char> parms);
+void Cpu::ld_nnp_a(std::vector<unsigned char> parms);
+void Cpu::xor_n(std::vector<unsigned char> parms);
+void Cpu::rst_28(std::vector<unsigned char> parms);		//0xEF
+void Cpu::ld_ffap_np(std::vector<unsigned char> parms);
+void Cpu::pop_af(std::vector<unsigned char> parms);
+void Cpu::ld_a_cp(std::vector<unsigned char> parms);
+void Cpu::di(std::vector<unsigned char> parms);
+void Cpu::push_af(std::vector<unsigned char> parms);
+void Cpu::or_n(std::vector<unsigned char> parms);
+void Cpu::rst_30(std::vector<unsigned char> parms);
+void Cpu::ld_hl_sp_n(std::vector<unsigned char> parms);
+void Cpu::ld_sp_hl(std::vector<unsigned char> parms);
+void Cpu::ld_a_nnp(std::vector<unsigned char> parms);
+void Cpu::ei(std::vector<unsigned char> parms);
+void Cpu::cp_n(std::vector<unsigned char> parms);
+void Cpu::rst_38(std::vector<unsigned char> parms);
