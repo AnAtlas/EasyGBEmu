@@ -10,25 +10,24 @@ Cpu::Cpu(){
 
 
 void Cpu::runCommand(std::string command) {
-	std::cout << command;
 
 	//Break apart command
-	std::vector <std::string> ps;
+	std::vector <unsigned char> parms;
 	std::stringstream ss;
 	ss.str(command);
 	std::string item;
 	while (std::getline(ss, item, ' ')) {
-		ps.push_back(item);
+		unsigned char temp1 = std::stoul(item, nullptr, 16);
+
+		parms.push_back(temp1);
 	}
-	if (ps[0] == "p")
+	if (parms[0] == 0xff)
 		printRegisters();
 	else {
-		unsigned char op = (unsigned char)(std::stoi(ps[0]));
-		std::vector<unsigned char> parms;
-		for (int i = 1; i < ps.size(); i++) {
-			parms.push_back((unsigned char)(std::stoi(ps[i])));
-		}
+		unsigned char op = parms[0];
+		parms.erase(parms.begin());
 		(this->*(instructions[op].fp))(parms);
+		printRegisters();
 	}
 }
 
@@ -43,10 +42,10 @@ void Cpu::clearRegisters() {
 
 void Cpu::generateInstructions() {
 	//Name string, number of parameters(in bytes, not counting opcode byte), number of cycles, function
-	instructions.push_back(Instruction("NOP",				0, 4, &Cpu::nop));			//0x00
+	instructions.push_back(Instruction("NOP",				0, 4, &Cpu::nop));			//0x00	
 	instructions.push_back(Instruction("LD BC, 0xXXXX",		2,12, &Cpu::ld_bc_nn));		//0x01	
-	instructions.push_back(Instruction("LD (BC), A",		0, 8, &Cpu::ld_bcp_a));		//0x02
-	instructions.push_back(Instruction("INC BC",			0, 8, &Cpu::inc_bc));		//0x03
+	instructions.push_back(Instruction("LD (BC), A",		0, 8, &Cpu::ld_bcp_a));		//0x02	
+	instructions.push_back(Instruction("INC BC",			0, 8, &Cpu::inc_bc));		//0x03	
 	instructions.push_back(Instruction("INC B",				0, 4, &Cpu::inc_b));		//0x04
 	instructions.push_back(Instruction("DEC B",				0, 4, &Cpu::dec_b));		//0x05
 	instructions.push_back(Instruction("LD B, 0xXX",		1, 8, &Cpu::ld_b_n));		//0x06
@@ -75,6 +74,17 @@ void Cpu::generateInstructions() {
 	instructions.push_back(Instruction("DEC E",				0, 4, &Cpu::dec_e));		//0x1D
 	instructions.push_back(Instruction("LD E, 0xXX",		1, 8, &Cpu::ld_e_n));		//0x1E
 	instructions.push_back(Instruction("RRA",				0, 4, &Cpu::rra));			//0x1F
+	instructions.push_back(Instruction("JR NZ, 0xXX",		1,12, &Cpu::jr_nz_n));		//0x20
+	instructions.push_back(Instruction("LD HL, 0xXXXX",		2,12, &Cpu::ld_hl_nn));		//0x21
+	instructions.push_back(Instruction("LD (HL+), A",		0, 8, &Cpu::ldi_hl_a));		//0x22
+	instructions.push_back(Instruction("INC HL",			0, 8, &Cpu::inc_hl));		//0x23
+	instructions.push_back(Instruction("INC H",				0, 4, &Cpu::inc_h));		//0x24
+	instructions.push_back(Instruction("DEC H",				0, 4, &Cpu::dec_h));		//0x25
+	instructions.push_back(Instruction("LD H, 0xXX",		1, 8, &Cpu::ld_h_n));		//0x26
+	instructions.push_back(Instruction("DAA",				1, 4, &Cpu::daa));			//0x27
+	instructions.push_back(Instruction("JR Z, 0xXX",		1, 12, &Cpu::jr_z_n));		//0x28
+	instructions.push_back(Instruction("ADD HL, HL",		1, 8, &Cpu::add_hl_hl));	//0x29
+	instructions.push_back(Instruction("LD A, (HL+)",		0, 8, &Cpu::ld_a_hli));		//0x2A
 }
 
 bool Cpu::checkFlag(unsigned char flag) {
@@ -153,7 +163,7 @@ void Cpu::printRegisters() {
 	std::cout << std::hex << "C: 0x" << (unsigned short)registers.c << std::endl;
 	std::cout << std::hex << "D: 0x" << (unsigned short)registers.d << std::endl;
 	std::cout << std::hex << "E: 0x" << (unsigned short)registers.e << std::endl;
-	std::cout << std::hex << "F: 0x" << (unsigned short)registers.f << std::endl;
+	std::cout << std::hex << "F: 0x" << (unsigned short)registers.f << std::endl << "  Z:" << (registers.f & Flags::Zero) << " S:" << (registers.f & Flags::Subtract) << " H:" << (registers.f & Flags::HalfCarry) << " C:" << (registers.f & Flags::Carry) << std::endl;
 	std::cout << std::hex << "H: 0x" << (unsigned short)registers.h << std::endl;
 	std::cout << std::hex << "L: 0x" << (unsigned short)registers.l << std::endl;
 	std::cout << std::hex << "AF: 0x" << registers.af << std::endl;
@@ -289,7 +299,7 @@ void Cpu::dec_c(std::vector<unsigned char> parms) {
 
 //0x0E Store byte value into c register
 void Cpu::ld_c_n(std::vector<unsigned char> parms) {
-	registers.b = parms[0];
+	registers.c = parms[0];
 
 	clock.m = 2;
 	clock.t = 8;
@@ -460,4 +470,100 @@ void Cpu::rra(std::vector<unsigned char> parms) {
 
 	clock.m = 1;
 	clock.t = 4;
+}
+
+//0x20 Jump to address sp + (signed)n if zero flag is not set, Flags(-,-,-,-)
+void Cpu::jr_nz_n(std::vector<unsigned char> parms) {
+	signed char addressOffset = (signed char)parms[0];
+	if (!checkFlag(Flags::Zero)) {
+		registers.pc += addressOffset;
+		clock.t = 12;
+	}
+	else
+		clock.t = 8;
+	clock.m = 2;
+}
+
+//0x21 Store unsigned short into register hl
+void Cpu::ld_hl_nn(std::vector<unsigned char> parms) {
+	unsigned short value = (parms[0] << 8) + parms[1];
+	registers.hl = value;
+
+	clock.m = 3;
+	clock.t = 12;
+}
+
+//0x22 Store register a into memory at hl, then increment HL, Flags(-,-,-,-)
+void Cpu::ldi_hl_a(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.a);
+	registers.hl++;
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x23 Increment the hl register, Flags(-,-,-,-)
+void Cpu::inc_hl(std::vector<unsigned char> parms) {
+	registers.hl++;
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x24 Increment the h register, Flags(Z,0,H,-)
+void Cpu::inc_h(std::vector<unsigned char> parms) {
+	registers.h = inc(registers.h);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x25 Decrement the h register, Flags(Z,1,H,-)
+void Cpu::dec_h(std::vector<unsigned char> parms) {
+	registers.h = dec(registers.h);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x26 Store byte n into register h
+void Cpu::ld_h_n(std::vector<unsigned char> parms) {
+	registers.h = parms[0];
+
+	clock.m = 2;
+	clock.t = 8;
+}
+
+//0x27 Decimal Adjust register a, Flags(Z,-,0,C)
+void Cpu::daa(std::vector<unsigned char> parms) {
+	std::cout << "ERROR, OPCODE 0x27, DAA not implemented";
+}
+
+//0x28 Jump to address sp + (signed char)n if zero flag is set, Flags(-,-,-,-)
+void Cpu::jr_z_n(std::vector<unsigned char> parms) {
+	signed char addressOffset = (signed char)parms[0];
+	if (checkFlag(Flags::Zero)) {
+		registers.pc += addressOffset;
+		clock.t = 12;
+	}
+	else
+		clock.t = 8;
+	clock.m = 2;
+}
+
+//0x29 Add register hl to register hl, Flags(-,0,H,C)
+void Cpu::add_hl_hl(std::vector<unsigned char> parms) {
+	registers.hl = add2(registers.hl, registers.hl);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x2A Set register a to memory location hl, then increment hl, Flags(-,-,-,-)
+void Cpu::ld_a_hlpi(std::vector<unsigned char> parms) {
+	registers.a = memory.readByte(registers.hl);
+	registers.hl++;
+
+	clock.m = 1;
+	clock.t = 8;
 }

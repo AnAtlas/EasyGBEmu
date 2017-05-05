@@ -74,14 +74,25 @@ private:
 	void inc_de(std::vector<unsigned char> parms);
 	void inc_d(std::vector<unsigned char> parms);
 	void dec_d(std::vector<unsigned char> parms);
-	void ld_d_n(std::vector<unsigned char> parms);		//0x1A
+	void ld_d_n(std::vector<unsigned char> parms);		
 	void rla(std::vector<unsigned char> parms);
 	void jr_n(std::vector<unsigned char> parms);
 	void add_hl_de(std::vector<unsigned char> parms);
-	void ld_a_dep(std::vector<unsigned char> parms);
+	void ld_a_dep(std::vector<unsigned char> parms);	//0x1A
 	void dec_de(std::vector<unsigned char> parms);
-	void inc_e(std::vector<unsigned char> parms);
+	void inc_e(std::vector<unsigned char> parms);		
 	void dec_e(std::vector<unsigned char> parms);
 	void ld_e_n(std::vector<unsigned char> parms);
 	void rra(std::vector<unsigned char> parms);
+	void jr_nz_n(std::vector<unsigned char> parms);		//0x20
+	void ld_hl_nn(std::vector<unsigned char> parms);
+	void ldi_hl_a(std::vector<unsigned char> parms);
+	void inc_hl(std::vector<unsigned char> parms);
+	void inc_h(std::vector<unsigned char> parms);
+	void dec_h(std::vector<unsigned char> parms);
+	void ld_h_n(std::vector<unsigned char> parms);
+	void daa(std::vector<unsigned char> parms);
+	void jr_z_n(std::vector<unsigned char> parms);
+	void add_hl_hl(std::vector<unsigned char> parms);
+	void ld_a_hlpi(std::vector<unsigned char> parms);	//0x2A
 };
