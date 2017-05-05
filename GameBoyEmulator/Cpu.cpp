@@ -111,17 +111,17 @@ void Cpu::generateInstructions() {
 	instructions.push_back(Instruction("LD B, D",			0, 4, &Cpu::ld_b_d));		//0x42
 	instructions.push_back(Instruction("LD B, E",			0, 4, &Cpu::ld_b_e));		//0x43
 	instructions.push_back(Instruction("LD B, H",			0, 4, &Cpu::ld_b_h));		//0x44
-	instructions.push_back(Instruction("LD B, L",			0, 4, &Cpu::dec_hlp));		//0x45
-	instructions.push_back(Instruction("LD B, (HL)",		0, 8, &Cpu::ld_hlp_n));		//0x46
-	instructions.push_back(Instruction("LD B, A",			0, 4, &Cpu::scf));			//0x47
-	instructions.push_back(Instruction("LD C, B",			0, 4, &Cpu::jr_c_n));		//0x48
-	instructions.push_back(Instruction("LD C, C",			0, 8, &Cpu::add_hl_sp));	//0x49
-	instructions.push_back(Instruction("LD C, D",			0, 8, &Cpu::ld_a_hlpd));	//0x4A
-	instructions.push_back(Instruction("LD C, E",			0, 8, &Cpu::dec_sp));		//0x4B
-	instructions.push_back(Instruction("LD C, H",			0, 4, &Cpu::inc_a));		//0x4C
-	instructions.push_back(Instruction("LD C, L",			0, 4, &Cpu::dec_a));		//0x4D
-	instructions.push_back(Instruction("LD C, (HL)",		0, 8, &Cpu::ld_a_n));		//0x4E
-	instructions.push_back(Instruction("LD C, A",			0, 4, &Cpu::ccf));			//0x4F
+	instructions.push_back(Instruction("LD B, L",			0, 4, &Cpu::ld_b_l));		//0x45
+	instructions.push_back(Instruction("LD B, (HL)",		0, 8, &Cpu::ld_b_hlp));		//0x46
+	instructions.push_back(Instruction("LD B, A",			0, 4, &Cpu::ld_b_a));		//0x47
+	instructions.push_back(Instruction("LD C, B",			0, 4, &Cpu::ld_c_b));		//0x48
+	instructions.push_back(Instruction("LD C, C",			0, 8, &Cpu::ld_c_c));		//0x49
+	instructions.push_back(Instruction("LD C, D",			0, 8, &Cpu::ld_c_d));		//0x4A
+	instructions.push_back(Instruction("LD C, E",			0, 8, &Cpu::ld_c_e));		//0x4B
+	instructions.push_back(Instruction("LD C, H",			0, 4, &Cpu::ld_c_h));		//0x4C
+	instructions.push_back(Instruction("LD C, L",			0, 4, &Cpu::ld_c_l));		//0x4D
+	instructions.push_back(Instruction("LD C, (HL)",		0, 8, &Cpu::ld_c_hlp));		//0x4E
+	instructions.push_back(Instruction("LD C, A",			0, 4, &Cpu::ld_c_a));		//0x4F
 	instructions.push_back(Instruction("JR NC, 0xXX",1, 12, &Cpu::jr_nc_n));		//0x30
 	instructions.push_back(Instruction("LD SP, 0xXXXX", 2, 12, &Cpu::ld_sp_nn));		//0x31
 	instructions.push_back(Instruction("LD (HL-), A", 0, 8, &Cpu::ldd_hlp_a));	//0x32
