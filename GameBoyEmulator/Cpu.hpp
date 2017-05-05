@@ -95,4 +95,57 @@ private:
 	void jr_z_n(std::vector<unsigned char> parms);
 	void add_hl_hl(std::vector<unsigned char> parms);
 	void ld_a_hlpi(std::vector<unsigned char> parms);	//0x2A
+	void dec_hl(std::vector<unsigned char> parms);
+	void inc_l(std::vector<unsigned char> parms);
+	void dec_l(std::vector<unsigned char> parms);
+	void ld_l_n(std::vector<unsigned char> parms);
+	void cpl(std::vector<unsigned char> parms);
+	void jr_nc_n(std::vector<unsigned char> parms);		//0x30
+	void ld_sp_nn(std::vector<unsigned char> parms);
+	void ldd_hlp_a(std::vector<unsigned char> parms);
+	void inc_sp(std::vector<unsigned char> parms);
+	void inc_hlp(std::vector<unsigned char> parms);
+	void dec_hlp(std::vector<unsigned char> parms);
+	void ld_hlp_n(std::vector<unsigned char> parms);
+	void scf(std::vector<unsigned char> parms);
+	void jr_c_n(std::vector<unsigned char> parms);
+	void add_hl_sp(std::vector<unsigned char> parms);
+	void ld_a_hlpd(std::vector<unsigned char> parms);	//0x3A
+	void dec_sp(std::vector<unsigned char> parms);
+	void inc_a(std::vector<unsigned char> parms);
+	void dec_a(std::vector<unsigned char> parms);
+	void ld_a_n(std::vector<unsigned char> parms);
+	void ccf(std::vector<unsigned char> parms);
+	void ld_b_b(std::vector<unsigned char> parms);		//0x40
+	void ld_b_c(std::vector<unsigned char> parms);
+	void ld_b_d(std::vector<unsigned char> parms);
+	void ld_b_e(std::vector<unsigned char> parms);
+	void ld_b_h(std::vector<unsigned char> parms);
+	void ld_b_l(std::vector<unsigned char> parms);
+	void ld_b_hlp(std::vector<unsigned char> parms);
+	void ld_b_a(std::vector<unsigned char> parms);
+	void ld_c_b(std::vector<unsigned char> parms);
+	void ld_c_c(std::vector<unsigned char> parms);
+	void ld_c_d(std::vector<unsigned char> parms);		//0x4A
+	void ld_c_e(std::vector<unsigned char> parms);
+	void ld_c_h(std::vector<unsigned char> parms);
+	void ld_c_l(std::vector<unsigned char> parms);
+	void ld_c_hlp(std::vector<unsigned char> parms);
+	void ld_c_a(std::vector<unsigned char> parms);
+	void ld_d_b(std::vector<unsigned char> parms);		//0x50
+	void ld_d_c(std::vector<unsigned char> parms);
+	void ld_d_d(std::vector<unsigned char> parms);
+	void ld_d_e(std::vector<unsigned char> parms);
+	void ld_d_h(std::vector<unsigned char> parms);
+	void ld_d_l(std::vector<unsigned char> parms);
+	void ld_d_hlp(std::vector<unsigned char> parms);
+	void ld_d_a(std::vector<unsigned char> parms);
+	void ld_e_b(std::vector<unsigned char> parms);
+	void ld_e_c(std::vector<unsigned char> parms);
+	void ld_e_d(std::vector<unsigned char> parms);		//0x5A
+	void ld_e_e(std::vector<unsigned char> parms);
+	void ld_e_h(std::vector<unsigned char> parms);
+	void ld_e_l(std::vector<unsigned char> parms);
+	void ld_e_hlp(std::vector<unsigned char> parms);
+	void ld_e_a(std::vector<unsigned char> parms);
 };
