@@ -355,8 +355,93 @@ unsigned char Cpu::dec(unsigned char val) {
 	return val;
 }
 
-unsigned short Cpu::add2(unsigned short v1, unsigned short v2) {
-	if ((v1 & 0xfff) + (v2 & 0xfff) & 0x1000)
+unsigned char Cpu::and(unsigned char a, unsigned char b) {
+	clearFlag(Flags::Subtract);
+	clearFlag(Flags::Carry);
+	setFlag(Flags::HalfCarry);
+
+	if (a & b)
+		clearFlag(Flags::Zero);
+	else
+		setFlag(Flags::Zero);
+
+	return a & b;
+}
+
+unsigned char Cpu::xor(unsigned char a, unsigned char b) {
+	clearAllFlags();
+	if (!(a ^ b))
+		setFlag(Flags::Zero);
+	return a ^ b;
+}
+
+unsigned char Cpu:: or(unsigned char a, unsigned char b) {
+	clearAllFlags();
+	if (!(a | b))
+		setFlag(Flags::Zero);
+	return a | b;
+}
+
+//Compare given char to register a
+void Cpu::compare(unsigned char b) {
+	setFlag(Flags::Subtract);
+	if (registers.a < b)
+		setFlag(Flags::Carry);
+	else
+		clearFlag(Flags::Carry);
+
+	if (registers.a & 0xf < b & 0xf)
+		setFlag(Flags::HalfCarry);
+	else
+		clearFlag(Flags::HalfCarry);
+	if (registers.a == b)
+		setFlag(Flags::Zero);
+	else
+		clearFlag(Flags::Zero);
+}
+
+unsigned char Cpu::addBytes(unsigned char a, unsigned char b) {
+	if (((a & 0xf) + (b & 0xf)) & 0x10)
+		setFlag(Flags::HalfCarry);
+	else
+		clearFlag(Flags::HalfCarry);
+	if ((a + b) & 0x100)
+		setFlag(Flags::Carry);
+	else
+		clearFlag(Flags::Carry);
+
+	if (a + b)
+		clearFlag(Flags::Zero);
+	else
+		setFlag(Flags::Zero);
+
+	clearFlag(Flags::Subtract);
+	return a + b;
+}
+
+unsigned char Cpu::subBytes(unsigned char a, unsigned char b) {
+	if (b > a)
+		setFlag(Flags::Carry);
+	else
+		clearFlag(Flags::Carry);
+
+	if (b & 0xf > a & 0xf)
+		setFlag(Flags::HalfCarry);
+	else
+		clearFlag(Flags::HalfCarry);
+
+	if (a == b)
+		setFlag(Flags::Zero);
+	else
+		clearFlag(Flags::Zero);
+
+	setFlag(Flags::Subtract);
+
+	return a - b;
+}
+
+unsigned short Cpu::addShorts(unsigned short v1, unsigned short v2) {
+	if (((v1 & 0xfff) + (v2 & 0xfff)) & 0x1000)
 		setFlag(Flags::HalfCarry);
 	else
 		clearFlag(Flags::HalfCarry);
@@ -367,6 +452,18 @@ unsigned short Cpu::add2(unsigned short v1, unsigned short v2) {
 
 	clearFlag(Flags::Subtract);
 	return v1 + v2;
+}
+
+unsigned char Cpu::addCarry(unsigned char b) {
+	if (checkFlag(Flags::Carry))
+		b++;
+	return addBytes(registers.a, b);
+}
+
+unsigned char Cpu::subCarry(unsigned char b) {
+	if (checkFlag(Flags::Carry))
+		b++;
+	return subBytes(registers.a, b);
 }
 
 void Cpu::printRegisters() {
@@ -472,7 +569,7 @@ void Cpu::ld_nnp_sp(std::vector<unsigned char> parms) {
 //0x09 add bc into hl
 void Cpu::add_hl_bc(std::vector<unsigned char> parms) {
 	clearFlag(Flags::Subtract);
-	registers.hl = add2(registers.hl, registers.bc);
+	registers.hl = addShorts(registers.hl, registers.bc);
 
 	clock.m = 1;
 	clock.t = 8;
@@ -624,7 +721,7 @@ void Cpu::jr_n(std::vector<unsigned char> parms) {
 void Cpu::add_hl_de(std::vector<unsigned char> parms) {
 	clearFlag(Flags::Subtract);
 
-	registers.hl = add2(registers.hl, registers.de);
+	registers.hl = addShorts(registers.hl, registers.de);
 
 	clock.m = 1;
 	clock.t = 8;
@@ -786,7 +883,7 @@ void Cpu::jr_z_n(std::vector<unsigned char> parms) {
 
 //0x29 Add register hl to register hl, Flags(-,0,H,C)
 void Cpu::add_hl_hl(std::vector<unsigned char> parms) {
-	registers.hl = add2(registers.hl, registers.hl);
+	registers.hl = addShorts(registers.hl, registers.hl);
 
 	clock.m = 1;
 	clock.t = 8;
@@ -934,7 +1031,7 @@ void Cpu::jr_c_n(std::vector<unsigned char> parms) {
 
 //0x39 Add sp to hl register, Flags(-,0,H,C)
 void Cpu::add_hl_sp(std::vector<unsigned char> parms) {
-	registers.hl = add2(registers.hl, registers.sp);
+	registers.hl = addShorts(registers.hl, registers.sp);
 
 	clock.m = 1;
 	clock.t = 8;
@@ -1379,245 +1476,648 @@ void Cpu::ld_l_a(std::vector<unsigned char> parms) {
 	clock.t = 4;
 }
 
-//0x40 Store register b into register b, Flags(-,-,-,-)//0x6F
-void Cpu::ld_hlp_b(std::vector<unsigned char> parms);
+//0x70 Store register b into memory at hl, Flags(-,-,-,-)
+void Cpu::ld_hlp_b(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.b);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x71 Store register c into memory at hl, Flags(-,-,-,-)
+void Cpu::ld_hlp_c(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.c);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x72 Store register d into memory at hl, Flags(-,-,-,-)
+void Cpu::ld_hlp_d(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.d);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x73 Store register e into memory at hl, Flags(-,-,-,-)
+void Cpu::ld_hlp_e(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.e);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x74 Store register h into memory at hl, Flags(-,-,-,-)
+void Cpu::ld_hlp_h(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.h);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x75 Store register l into register b, Flags(-,-,-,-)
+void Cpu::ld_hlp_l(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.l);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x76 Halt, Power down CPU until interrupt occurs
+void Cpu::halt(std::vector<unsigned char> parms) {
+	std::cout << "ERROR, 0x76 HALT not implemented";
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x77 Store register a into memory at hl, Flags(-,-,-,-)
+void Cpu::ld_hlp_a(std::vector<unsigned char> parms) {
+	memory.writeByte(registers.hl, registers.a);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x78 Store register b into register a, Flags(-,-,-,-)
+void Cpu::ld_a_b(std::vector<unsigned char> parms) {
+	registers.a = registers.b;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x79 Store register c into register a, Flags(-,-,-,-)
+void Cpu::ld_a_c(std::vector<unsigned char> parms) {
+	registers.a = registers.c;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x7A Store register d into register a, Flags(-,-,-,-)
+void Cpu::ld_a_d(std::vector<unsigned char> parms) {
+	registers.a = registers.d;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x7B Store register e into register a, Flags(-,-,-,-)
+void Cpu::ld_a_e(std::vector<unsigned char> parms) {
+	registers.a = registers.e;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x7C Store register h into register a, Flags(-,-,-,-)
+void Cpu::ld_a_h(std::vector<unsigned char> parms) {
+	registers.a = registers.h;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x7D Store register l into register a, Flags(-,-,-,-)
+void Cpu::ld_a_l(std::vector<unsigned char> parms) {
+	registers.a = registers.l;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x7E Store memory value at hl into register a, Flags(-,-,-,-)
+void Cpu::ld_a_hlp(std::vector<unsigned char> parms) {
+	registers.a = memory.readByte(registers.hl);
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x7F Store register a into register a, Flags(-,-,-,-)
+void Cpu::ld_a_a(std::vector<unsigned char> parms) {
+	registers.a = registers.a;
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x80 Add register b into a, Flags(Z,0,H,C)
+void Cpu::add_a_b(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, registers.b);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x81 Add register b into a, Flags(Z,0,H,C)
+void Cpu::add_a_c(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, registers.c);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x82 Add register d into a, Flags(Z,0,H,C)
+void Cpu::add_a_d(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x83 Add register e into a, Flags(Z,0,H,C)
+void Cpu::add_a_e(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, registers.e);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x84 Add register h into a, Flags(Z,0,H,C)
+void Cpu::add_a_h(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, registers.h);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x85 Add register l into a, Flags(Z,0,H,C)
+void Cpu::add_a_l(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, registers.l);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x86 Add memory value hl into a, Flags(Z,0,H,C)
+void Cpu::add_a_hlp(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, memory.readByte(registers.hl));
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x87 Add register a into a, Flags(Z,0,H,C)
+void Cpu::add_a_a(std::vector<unsigned char> parms) {
+	registers.a = addBytes(registers.a, registers.a);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x88 Add register c + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_b(std::vector<unsigned char> parms) {
+	registers.a = addCarry(registers.b);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x89 Add register c + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_c(std::vector<unsigned char> parms) {
+	registers.a = addCarry(registers.c);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x8A Add register d + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_d(std::vector<unsigned char> parms) {
+	registers.a = addCarry(registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x8B Add register e + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_e(std::vector<unsigned char> parms) {
+	registers.a = addCarry(registers.e);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x8C Add register h + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_h(std::vector<unsigned char> parms) {
+	registers.a = addCarry(registers.h);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x8D Add register l + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_l(std::vector<unsigned char> parms) {
+	registers.a = addCarry(registers.l);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x8E Add memory value at hl + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_hlp(std::vector<unsigned char> parms) {
+	registers.a = addCarry(memory.readByte(registers.hl));
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x8F Add register a + carry into register a, Flags(Z,0,H,C)
+void Cpu::adc_a_a(std::vector<unsigned char> parms) {
+	registers.a = addCarry(registers.a);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x90 Subtract register b from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_b(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, registers.b);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x91 Subtract register c from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_c(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, registers.c);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x92 Subtract register d from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_d(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x93 Subtract register e from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_e(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, registers.e);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x94 Subtract register h from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_h(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, registers.h);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x95 Subtract register l from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_l(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, registers.l);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x96 Subtract memory value at hl from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_hlp(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, memory.readByte(registers.hl));
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x97 Subtract register b from/into register a, Flags(Z,1,H,C)
+void Cpu::sub_a(std::vector<unsigned char> parms) {
+	registers.a = subBytes(registers.a, registers.a);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x98 Subtract register b + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_b(std::vector<unsigned char> parms) {
+	registers.a = subCarry(registers.b);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x99 Subtract register c + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_c(std::vector<unsigned char> parms) {
+	registers.a = subCarry(registers.c);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x9A Subtract register d + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_d(std::vector<unsigned char> parms) {
+	registers.a = subCarry(registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x9B Subtract register e + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_e(std::vector<unsigned char> parms) {
+	registers.a = subCarry(registers.e);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x9C Subtract register h + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_h(std::vector<unsigned char> parms) {
+	registers.a = subCarry(registers.h);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x9D Subtract register l + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_l(std::vector<unsigned char> parms) {
+	registers.a = subCarry(registers.l);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0x9E Subtract memory value at hl + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_hlp(std::vector<unsigned char> parms) {
+	registers.a = subCarry(memory.readByte(registers.hl));
+
+	clock.m = 1;
+	clock.t = 8;
+}
+
+//0x9F Subtract register a + carry from/into register a, Flags(Z,1,H,C)
+void Cpu::sbc_a_a(std::vector<unsigned char> parms) {
+	registers.a = subCarry(registers.a);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0xA0 AND register b with a into register a, Flags(Z,0,1,0)
+void Cpu::and_b(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, registers.b);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0xA1 AND register c with a into register a, Flags(Z,0,1,0)
+void Cpu::and_c(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, registers.c);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0xA2 AND register d with a into register a, Flags(Z,0,1,0)
+void Cpu::and_d(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, registers.d);
+
+	clock.m = 1;
+	clock.t = 4;
+}
+
+//0xA3 AND register e with a into register a, Flags(Z,0,1,0)
+void Cpu::and_e(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, registers.e);
+
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_hlp_c(std::vector<unsigned char> parms);
+//0xA4 AND register h with a into register a, Flags(Z,0,1,0)
+void Cpu::and_h(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, registers.h);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_hlp_d(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_hlp_e(std::vector<unsigned char> parms);
+//0xA5 AND register l with a into register a, Flags(Z,0,1,0)
+void Cpu::and_l(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, registers.l);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_hl_h(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_hl_l(std::vector<unsigned char> parms);
+//0xA6 AND memory value at hl with a into register a, Flags(Z,0,1,0)
+void Cpu::and_hlp(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, memory.readByte(registers.hl));
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::halt(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 8;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_hlp_a(std::vector<unsigned char> parms);
+//0xA7 AND register a with a into register a, Flags(Z,0,1,0)
+void Cpu::and_a(std::vector<unsigned char> parms) {
+	registers.a = and(registers.a, registers.a);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_b(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_c(std::vector<unsigned char> parms);
+//0xA8 XOR register b with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_b(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, registers.b);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_d(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_e(std::vector<unsigned char> parms);
+//0xA9 XOR register c with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_c(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, registers.c);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_h(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_l(std::vector<unsigned char> parms);
+//0xAA XOR register d with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_d(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, registers.d);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_hlp(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::ld_a_a(std::vector<unsigned char> parms);		
+//0xAB XOR register e with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_e(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, registers.e);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)//0x7F
-void Cpu::add_a_b(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::add_a_c(std::vector<unsigned char> parms);
+//0xAC XOR register h with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_h(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, registers.h);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::add_a_d(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::add_a_e(std::vector<unsigned char> parms);
+//0xAD XOR register l with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_l(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, registers.l);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::add_a_h(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::add_a_l(std::vector<unsigned char> parms);
+//0xAE XOR memory value at hl with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_hlp(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, memory.readByte(registers.hl));
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::add_a_hlp(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 8;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::add_a_a(std::vector<unsigned char> parms);
+//0xAF XOR register a with a into register a, Flags(Z,0,0,0)
+void Cpu::xor_a(std::vector<unsigned char> parms) {
+	registers.a = xor(registers.a, registers.a);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_b(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_c(std::vector<unsigned char> parms);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_d(std::vector<unsigned char> parms);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_e(std::vector<unsigned char> parms);
+//0xB0 OR register a with b into register a, Flags(Z,0,0,0)
+void Cpu::or_b(std::vector<unsigned char> parms) {
+	registers.a = or(registers.a, registers.b);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_h(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_l(std::vector<unsigned char> parms);
+//0xB1 OR register a with c into register a, Flags(Z,0,0,0)
+void Cpu::or_c(std::vector<unsigned char> parms) {
+	registers.a = or (registers.a, registers.c);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_hlp(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::adc_a_a(std::vector<unsigned char> parms);	
+//0xB2 OR register a with d into register a, Flags(Z,0,0,0)
+void Cpu::or_d(std::vector<unsigned char> parms) {
+	registers.a = or (registers.a, registers.d);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)//0x8F
-void Cpu::sub_b(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sub_c(std::vector<unsigned char> parms);
+//0xB3 OR register a with e into register a, Flags(Z,0,0,0)
+void Cpu::or_e(std::vector<unsigned char> parms) {
+	registers.a = or (registers.a, registers.e);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sub_d(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sub_e(std::vector<unsigned char> parms);
+//0xB4 OR register a with h into register a, Flags(Z,0,0,0)
+void Cpu::or_h(std::vector<unsigned char> parms) {
+	registers.a = or (registers.a, registers.h);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sub_h(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sub_l(std::vector<unsigned char> parms);
+//0xB5 OR register a with l into register a, Flags(Z,0,0,0)
+void Cpu::or_l(std::vector<unsigned char> parms) {
+	registers.a = or (registers.a, registers.l);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sub_hlp(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sub_a(std::vector<unsigned char> parms);
+//0xB6 OR register a memory value at hl into register a, Flags(Z,0,0,0)
+void Cpu::or_hlp(std::vector<unsigned char> parms) {
+	registers.a = or (registers.a, memory.readByte(registers.hl));
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_b(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 8;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_c(std::vector<unsigned char> parms);
+//0xB7 OR register a with a into register a, Flags(Z,0,0,0)
+void Cpu::or_a(std::vector<unsigned char> parms) {
+	registers.a = or (registers.a, registers.a);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_d(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_e(std::vector<unsigned char> parms);
+//0xB8 Compare register a with register b, Flags(Z,1,H,C)
+void Cpu::cp_b(std::vector<unsigned char> parms) {
+	compare(registers.b);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_h(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_l(std::vector<unsigned char> parms);
+//0xB9 Compare register a with register c, Flags(Z,1,H,C)
+void Cpu::cp_c(std::vector<unsigned char> parms) {
+	compare(registers.c);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_hlp(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::sbc_a_a(std::vector<unsigned char> parms);	
+//0xBA Compare register a with register d, Flags(Z,1,H,C)
+void Cpu::cp_d(std::vector<unsigned char> parms) {
+	compare(registers.d);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)//0x9F
-void Cpu::and_b(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
+//0xBB Compare register a with register e, Flags(Z,1,H,C)
+void Cpu::cp_e(std::vector<unsigned char> parms) {
+	compare(registers.e);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::and_c(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::and_d(std::vector<unsigned char> parms);
+//0xBC Compare register a with register h, Flags(Z,1,H,C)
+void Cpu::cp_h(std::vector<unsigned char> parms) {
+	compare(registers.h);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::and_e(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::and_h(std::vector<unsigned char> parms);
+//0xBD Compare register a with register l, Flags(Z,1,H,C)
+void Cpu::cp_l(std::vector<unsigned char> parms) {
+	compare(registers.l);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::and_l(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::and_hlp(std::vector<unsigned char> parms);
+//0xBE Compare register a with memory value at hl, Flags(Z,1,H,C)
+void Cpu::cp_hlp(std::vector<unsigned char> parms) {
+	compare(memory.readByte(registers.hl));
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::and_a(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 8;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_b(std::vector<unsigned char> parms);
+//0xBF Compare register a with register a, Flags(Z,1,H,C)
+void Cpu::cp_a(std::vector<unsigned char> parms) {
+	compare(registers.a);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_c(std::vector<unsigned char> parms);
+	clock.m = 1;
+	clock.t = 4;
+}
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_d(std::vector<unsigned char> parms);
 
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_e(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_h(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_l(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_hlp(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::xor_a(std::vector<unsigned char> parms);		
-
-//0x40 Store register b into register b, Flags(-,-,-,-)//0xAF
-void Cpu::or_b(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::or_c(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::or_d(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::or_e(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::or_h(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::or_l(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::or_hlp(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::or_a(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_b(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_c(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_d(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_e(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_h(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_l(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_hlp(std::vector<unsigned char> parms);
-
-//0x40 Store register b into register b, Flags(-,-,-,-)
-void Cpu::cp_a(std::vector<unsigned char> parms);		
 
 //0x40 Store register b into register b, Flags(-,-,-,-)//0xBF
 void Cpu::ret_nz(std::vector<unsigned char> parms);

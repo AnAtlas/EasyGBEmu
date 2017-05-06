@@ -49,7 +49,15 @@ private:
 	//General Functions
 	unsigned char inc(unsigned char value);
 	unsigned char dec(unsigned char value);
-	unsigned short add2(unsigned short v1, unsigned short v2);
+	unsigned char and(unsigned char v1, unsigned char v2);
+	unsigned char xor(unsigned char v1, unsigned char v2);
+	unsigned char or(unsigned char v1, unsigned char v2);
+	void compare(unsigned char value);
+	unsigned char addCarry(unsigned char value);
+	unsigned char subCarry(unsigned char value);
+	unsigned char addBytes(unsigned char v1, unsigned char v2);
+	unsigned char subBytes(unsigned char v1, unsigned char v2);
+	unsigned short addShorts(unsigned short v1, unsigned short v2);
 
 	//Instruction functions
 	void nop(std::vector<unsigned char> parms);			//0x00
