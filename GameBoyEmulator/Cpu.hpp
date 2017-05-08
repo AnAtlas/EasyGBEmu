@@ -59,6 +59,8 @@ private:
 	unsigned char subBytes(unsigned char v1, unsigned char v2);
 	unsigned short addShorts(unsigned short v1, unsigned short v2);
 
+	void enableInterrupts();
+	void disableInterrupts();
 	//Instruction functions
 	void nop(std::vector<unsigned char> parms);			//0x00
 	void ld_bc_nn(std::vector<unsigned char> parms);	//0x01

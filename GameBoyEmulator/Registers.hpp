@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum Flags{
+enum Flags{
 	Zero = (1 << 7),
 	Subtract = (1 << 6),
 	HalfCarry = (1 << 5),
