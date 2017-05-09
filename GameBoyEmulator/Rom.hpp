@@ -10,6 +10,6 @@ public:
 	Rom();
 	Rom(std::string romPath);
 
-	void loadRom(std::string romPath);
+	bool loadRom(std::string romPath);
 	unsigned char * getRomData();
 };

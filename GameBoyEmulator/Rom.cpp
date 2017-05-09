@@ -12,7 +12,7 @@ Rom::Rom(std::string romPath) {
 }
 
 //TODO: Handle different sized carts
-void Rom::loadRom(std::string romPath) {
+bool Rom::loadRom(std::string romPath) {
 	std::ifstream in(romPath, std::ifstream::ate | std::ifstream::binary);
 	std::ifstream::pos_type size = in.tellg();
 	in.close();
@@ -20,7 +20,10 @@ void Rom::loadRom(std::string romPath) {
 	romFile.open(romPath, std::ios::in | std::ios::binary);
 	if (romFile.is_open()) {
 		romFile.read(romData, size);
+		romLoaded = true;
+		return true;
 	}
+	return false;
 }
 
 unsigned char* Rom::getRomData() {
