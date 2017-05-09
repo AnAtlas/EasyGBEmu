@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 #include "Cpu.hpp"
-
+#include "Rom.hpp"
 
 int main()
 {
@@ -19,7 +19,8 @@ int main()
 	freopen("CONIN$", "r", stdin);
 
 	Cpu* cpu = new Cpu();
-
+	Rom* rom = new Rom();
+	rom->loadRom("01-special.gb");
 	cpu->printRegisters();
 
 	while (window.isOpen())
