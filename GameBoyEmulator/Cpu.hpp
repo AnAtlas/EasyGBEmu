@@ -3,43 +3,38 @@
 
 #include "Registers.hpp"
 #include "Memory.hpp"
+#include "Gameboy.hpp"
+
+struct Instruction {
+	Instruction(std::string instruction, unsigned char parameterLength, unsigned char ticks,
+		void (Cpu::*fp)(std::vector<unsigned char> parms))
+		: instruction(instruction), parameterLength(parameterLength), ticks(ticks), fp(fp) {
+
+	}
+	std::string instruction;
+	unsigned char parameterLength;
+	unsigned char ticks;
+	void (Cpu::*fp)(std::vector<unsigned char> parms);
+};
 
 class Cpu {
-	struct Instruction {
-		Instruction(std::string instruction, unsigned char parameterLength, unsigned char ticks,
-			void (Cpu::*fp)(std::vector<unsigned char> parms))
-				: instruction(instruction), parameterLength(parameterLength), ticks(ticks), fp(fp){
-
-		}
-		std::string instruction;
-		unsigned char parameterLength;
-		unsigned char ticks;
-		void (Cpu::*fp)(std::vector<unsigned char> parms);
-	};
-
 	struct Clock {
 		unsigned int m = 0;
 		unsigned int t = 0;
 	};
 
-public:
-	Cpu();
-	void printRegisters();
-	void step();
-
-	//Debug
-	void runCommand(std::string command);
-
 private:
 	Registers registers;
 	Clock clock;
-	Memory memory;
+	Memory* memory;
+	GameboyModes gameboyMode;
 	bool stopped;
-
-	void clearRegisters();
+	bool jumped;
+	void setRegisters();
 	void generateInstructions();
 
 	std::vector<Instruction> instructions;
+	std::vector<Instruction> extInstructions;
 
 	void reset();
 	void setFlag(unsigned char flag);
@@ -51,7 +46,7 @@ private:
 	unsigned char dec(unsigned char value);
 	unsigned char and(unsigned char v1, unsigned char v2);
 	unsigned char xor(unsigned char v1, unsigned char v2);
-	unsigned char or(unsigned char v1, unsigned char v2);
+	unsigned char or (unsigned char v1, unsigned char v2);
 	void compare(unsigned char value);
 	unsigned char addCarry(unsigned char value);
 	unsigned char subCarry(unsigned char value);
@@ -61,6 +56,15 @@ private:
 
 	void enableInterrupts();
 	void disableInterrupts();
+
+public:
+	Cpu(GameboyModes gameboyMode);
+	void printRegisters();
+	void step();
+	void linkMemory(Memory* mem) { this->memory = mem; }
+	//Debug
+	void runCommand(std::string command);
+	
 	//Instruction functions
 	void nop(std::vector<unsigned char> parms);			//0x00
 	void ld_bc_nn(std::vector<unsigned char> parms);	//0x01
@@ -84,13 +88,13 @@ private:
 	void inc_de(std::vector<unsigned char> parms);
 	void inc_d(std::vector<unsigned char> parms);
 	void dec_d(std::vector<unsigned char> parms);
-	void ld_d_n(std::vector<unsigned char> parms);		
+	void ld_d_n(std::vector<unsigned char> parms);
 	void rla(std::vector<unsigned char> parms);
 	void jr_n(std::vector<unsigned char> parms);
 	void add_hl_de(std::vector<unsigned char> parms);
 	void ld_a_dep(std::vector<unsigned char> parms);	//0x1A
 	void dec_de(std::vector<unsigned char> parms);
-	void inc_e(std::vector<unsigned char> parms);		
+	void inc_e(std::vector<unsigned char> parms);
 	void dec_e(std::vector<unsigned char> parms);
 	void ld_e_n(std::vector<unsigned char> parms);
 	void rra(std::vector<unsigned char> parms);
@@ -309,4 +313,6 @@ private:
 	void rst_38(std::vector<unsigned char> parms);
 
 	void null(std::vector<unsigned char> parms);
+
+	//Instructions accessed through CB
 };

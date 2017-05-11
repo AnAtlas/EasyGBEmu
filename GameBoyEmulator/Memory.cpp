@@ -1,4 +1,6 @@
 #include "Memory.hpp"
+#include "Rom.hpp"
+
 #include <iostream>
 
 Memory::Memory() {
@@ -13,13 +15,20 @@ void Memory::copy(unsigned short destination, unsigned short source, size_t leng
 }
 
 void Memory::writeByte(unsigned short address, unsigned char value) {
+	if (address >= Address::Echo && address < Address::Oam - 1) {
+		memory.wram[address - Address::Echo] = value;
+	}
+	if (addressOnCartridge(address)) {
+		cartridge->writeByte(address, value);
+		return;
+	}
 	memory.totalMemory[address] = value;
-	std::cout << memory.totalMemory[address];
+	std::cout << std::hex << memory.totalMemory[address];
 }
 
 void Memory::writeShort(unsigned short address, unsigned short value) {
 	writeByte(address, (unsigned char)(value & 0x00FF));
-	writeByte(address, (unsigned char)((value & 0xFF00) >> 8));
+	writeByte(address + 1, (unsigned char)((value & 0xFF00) >> 8));
 }
 
 void Memory::writeShortToStack(unsigned short value, unsigned short* spRegister) {
@@ -28,6 +37,11 @@ void Memory::writeShortToStack(unsigned short value, unsigned short* spRegister)
 }
 
 unsigned char Memory::readByte(unsigned short address) {
+	if (address >= Address::Echo && address < Address::Oam - 1) {
+		return memory.wram[address - Address::Echo];
+	}
+	if (addressOnCartridge(address))
+		return cartridge->readByte(address);
 	return memory.totalMemory[address];
 }
 
@@ -39,4 +53,12 @@ unsigned short Memory::readShortFromStack(unsigned short* spRegister) {
 	unsigned short value = readShort(*spRegister);
 	(*spRegister) += 2;
 	return value;
+}
+
+bool Memory::addressOnCartridge(unsigned short address) {
+	if (address <= 0x7FFF)//Rom banks
+		return true;
+	if (address >= 0xA000 && address <= 0xBFFF)//External ram
+		return true;
+	return false;
 }

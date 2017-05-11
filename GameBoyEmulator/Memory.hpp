@@ -1,5 +1,23 @@
 #pragma once
 
+class Rom;
+
+enum Address {
+	Cart1 = 0x0000,
+	Cart2 = 0x4000,
+	Vram = 0x8000,
+	Sram = 0xA000,
+	Wram = 0xC000,
+	Echo = 0xE000,
+	Oam = 0xFE00,
+	Blank = 0xFEA0,
+	IoPorts = 0xFF00,
+	IntFlags = 0xFF0F,
+	Blank2 = 0xFF4C,
+	Hram = 0xFF80,
+	IeRegister = 0xFFFF
+};
+
 class Memory {
 private:
 	union Mem {
@@ -19,11 +37,13 @@ private:
 		};
 		unsigned char totalMemory[0xFFFF];
 	};
-	
+	Rom* cartridge;
 	Mem memory;
 	void copy(unsigned short destination, unsigned short source, size_t length);
+	bool addressOnCartridge(unsigned short address);
 public:
 	Memory();
+	void linkRom(Rom* rom) { this->cartridge = rom; }
 	void writeByte(unsigned short address, unsigned char value);
 	void writeShort(unsigned short address, unsigned short value);
 	void writeShortToStack(unsigned short value, unsigned short* spRegister);
