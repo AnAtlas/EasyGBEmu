@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include "SFML/Graphics/RenderWindow.hpp"
+#include <thread>
 
 class Memory;
 class Cpu;
@@ -18,15 +20,16 @@ private:
 	Rom* rom;
 	Memory* memory;
 	Gpu* gpu;
+	std::thread gameboyThread;
 
 	bool running;
 	GameboyModes gameboyMode;
-
+	sf::RenderWindow* window;
 	void linkComponents();
 public:
-	Gameboy();
+	Gameboy(sf::RenderWindow* window);
 	bool insertRom(std::string romPath);
 	void play();
-
+	void shutDown();
 	void runOpcode(std::string com);
 };

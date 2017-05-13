@@ -165,7 +165,7 @@ unsigned char Cartridge::readByte(unsigned short address) {
 	if (address >= CartAddress::RomBank0 && address <= CartAddress::RomBank0End)
 		return romBank0[address];
 	if (address >= CartAddress::RomBankX && address <= CartAddress::RomBankXEnd)
-		return romBankX[address];
+		return romBankX[address - CartAddress::RomBankX];
 	if (address >= CartAddress::SRamBankX && address <= CartAddress::SRamBankXEnd) {
 		if (hasRam && ramEnabled) {
 			unsigned short ramSizeBytes = 8192;

@@ -1,6 +1,7 @@
 #pragma once
 
 class Rom;
+class Gpu;
 
 enum Address {
 	Cart1 = 0x0000,
@@ -24,13 +25,13 @@ private:
 		struct {
 			unsigned char cart1[0x4000];
 			unsigned char cart2[0x4000];
-			unsigned char vRam[0x2000];
-			unsigned char sRam[0x2000];
+			unsigned char vRam[0x2000]; //0x8000
+			unsigned char sRam[0x2000]; //0xA000
 			unsigned char wram[0x2000];
 			unsigned char echo[0x1E00];
-			unsigned char oam[0xA0];
+			unsigned char oam[0xA0];	//0xFE00
 			unsigned char blank[0x60];
-			unsigned char ioPorts[0x4C];
+			unsigned char ioPorts[0x4C]; //0xFF00
 			unsigned char blank2[0x34];
 			unsigned char hRam[0x80];
 			unsigned char ieRegister[0x01];
@@ -38,12 +39,15 @@ private:
 		unsigned char totalMemory[0xFFFF];
 	};
 	Rom* cartridge;
+	Gpu* gpu;
 	Mem memory;
+	bool inBios;
 	void copy(unsigned short destination, unsigned short source, size_t length);
 	bool addressOnCartridge(unsigned short address);
 public:
 	Memory();
 	void linkRom(Rom* rom) { this->cartridge = rom; }
+	void linkGpu(Gpu* gpu) { this->gpu = gpu; }
 	void writeByte(unsigned short address, unsigned char value);
 	void writeShort(unsigned short address, unsigned short value);
 	void writeShortToStack(unsigned short value, unsigned short* spRegister);
@@ -51,4 +55,6 @@ public:
 	unsigned char readByte(unsigned short address);
 	unsigned short readShort(unsigned short address);
 	unsigned short readShortFromStack(unsigned short* spRegister);
+
+	unsigned char* getBytePointer(unsigned short address);
 };
