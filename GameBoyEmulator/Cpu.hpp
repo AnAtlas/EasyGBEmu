@@ -57,7 +57,7 @@ private:
 	unsigned char srl(unsigned char byte);
 	unsigned char swap(unsigned char byte);
 	void bit(unsigned char bit, unsigned char byte);
-	void res(unsigned char bit, unsigned char byte);
+	unsigned char res(unsigned char bit, unsigned char byte);
 	unsigned char set(unsigned char bit, unsigned char byte);
 	void compare(unsigned char value);
 	unsigned char addCarry(unsigned char value);

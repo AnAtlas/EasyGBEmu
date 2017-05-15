@@ -2131,7 +2131,7 @@ void Cpu::res0_hlp(std::vector<unsigned char> parms) {
 	memory->writeByte(registers.hl, res(0b1, memory->readByte(registers.hl)));
 }
 //0x87 Reset bit 0 in register a, Flags(-,-,-,-)     
-void Cpu::1es0_a(std::vector<unsigned char> parms) {
+void Cpu::res0_a(std::vector<unsigned char> parms) {
 	registers.a = res(0b1, registers.a);
 }
 //0x88 Reset bit 1 in register b, Flags(-,-,-,-)     
@@ -2168,7 +2168,7 @@ void Cpu::res1_a(std::vector<unsigned char> parms) {
 }
 //0x90 Reset bit 2 in register b, Flags(-,-,-,-)     
 void Cpu::res2_b(std::vector<unsigned char> parms) {
-	registers. = res(0b100, registers.);
+	registers.b = res(0b100, registers.b);
 }
 //0x91 Reset bit 2 in register c, Flags(-,-,-,-)     
 void Cpu::res2_c(std::vector<unsigned char> parms) {
@@ -2200,27 +2200,27 @@ void Cpu::res2_a(std::vector<unsigned char> parms) {
 }
 //0x98 Reset bit 3 in register b, Flags(-,-,-,-)     
 void Cpu::res3_b(std::vector<unsigned char> parms){
-	registers. = res(0b1000, registers.);
+	registers.b = res(0b1000, registers.b);
 }
 //0x99 Reset bit 3 in register c, Flags(-,-,-,-)     
 void Cpu::res3_c(std::vector<unsigned char> parms) {
-	registers. = res(0b1000, registers.);
+	registers.c = res(0b1000, registers.c);
 }
 //0x9A Reset bit 3 in register d, Flags(-,-,-,-)     
 void Cpu::res3_d(std::vector<unsigned char> parms) {
-	registers. = res(0b1000, registers.);
+	registers.d = res(0b1000, registers.d);
 }
 //0x9B Reset bit 3 in register e, Flags(-,-,-,-)     
 void Cpu::res3_e(std::vector<unsigned char> parms) {
-	registers. = res(0b1000, registers.);
+	registers.e = res(0b1000, registers.e);
 }
 //0x9C Reset bit 3 in register h, Flags(-,-,-,-)     
 void Cpu::res3_h(std::vector<unsigned char> parms) {
-	registers. = res(0b1000, registers.);
+	registers.h = res(0b1000, registers.h);
 }
 //0x9D Reset bit 3 in register l, Flags(-,-,-,-)     
 void Cpu::res3_l(std::vector<unsigned char> parms) {
-	registers. = res(0b1000, registers.);
+	registers.l = res(0b1000, registers.l);
 }
 //0x9E Reset bit 3 in memory at register hl, Flags(-,-,-,-)     
 void Cpu::res3_hlp(std::vector<unsigned char> parms) {
@@ -2228,7 +2228,7 @@ void Cpu::res3_hlp(std::vector<unsigned char> parms) {
 }
 //0x9F Reset bit 3 in register a, Flags(-,-,-,-)     
 void Cpu::res3_a(std::vector<unsigned char> parms) {
-	registers. = res(0b1000, registers.);
+	registers.a = res(0b1000, registers.a);
 }
 //0xA0 Reset bit 4 in register b, Flags(-,-,-,-)     
 void Cpu::res4_b(std::vector<unsigned char> parms) {
@@ -2387,7 +2387,7 @@ void Cpu::set0_hlp(std::vector<unsigned char> parms) {
 	memory->writeByte(registers.hl, set(0b1, memory->readByte(registers.hl)));
 }
 //0xC7 Set bit 0 in register a, Flags(-,-,-,-)     
-void Cpu::1es0_a(std::vector<unsigned char> parms) {
+void Cpu::set0_a(std::vector<unsigned char> parms) {
 	registers.a = set(0b1, registers.a);
 }
 //0xC8 Set bit 1 in register b, Flags(-,-,-,-)     
@@ -2424,7 +2424,7 @@ void Cpu::set1_a(std::vector<unsigned char> parms) {
 }
 //0xD0 Set bit 2 in register b, Flags(-,-,-,-)     
 void Cpu::set2_b(std::vector<unsigned char> parms) {
-	registers. = set(0b100, registers.);
+	registers.b = set(0b100, registers.b);
 }
 //0xD1 Set bit 2 in register c, Flags(-,-,-,-)     
 void Cpu::set2_c(std::vector<unsigned char> parms) {
@@ -2456,27 +2456,27 @@ void Cpu::set2_a(std::vector<unsigned char> parms) {
 }
 //0xD8 Set bit 3 in register b, Flags(-,-,-,-)     
 void Cpu::set3_b(std::vector<unsigned char> parms) {
-	registers. = set(0b1000, registers.);
+	registers.b = set(0b1000, registers.b);
 }
 //0xD9 Set bit 3 in register c, Flags(-,-,-,-)     
 void Cpu::set3_c(std::vector<unsigned char> parms) {
-	registers. = set(0b1000, registers.);
+	registers.c = set(0b1000, registers.c);
 }
 //0xDA Set bit 3 in register d, Flags(-,-,-,-)     
 void Cpu::set3_d(std::vector<unsigned char> parms) {
-	registers. = set(0b1000, registers.);
+	registers.d = set(0b1000, registers.d);
 }
 //0xDB Set bit 3 in register e, Flags(-,-,-,-)     
 void Cpu::set3_e(std::vector<unsigned char> parms) {
-	registers. = set(0b1000, registers.);
+	registers.e = set(0b1000, registers.e);
 }
 //0xDC Set bit 3 in register h, Flags(-,-,-,-)     
 void Cpu::set3_h(std::vector<unsigned char> parms) {
-	registers. = set(0b1000, registers.);
+	registers.h = set(0b1000, registers.h);
 }
 //0xDD Set bit 3 in register l, Flags(-,-,-,-)     
 void Cpu::set3_l(std::vector<unsigned char> parms) {
-	registers. = set(0b1000, registers.);
+	registers.l = set(0b1000, registers.l);
 }
 //0xDE Set bit 3 in memory at register hl, Flags(-,-,-,-)     
 void Cpu::set3_hlp(std::vector<unsigned char> parms) {
@@ -2484,7 +2484,7 @@ void Cpu::set3_hlp(std::vector<unsigned char> parms) {
 }
 //0xDF Set bit 3 in register a, Flags(-,-,-,-)     
 void Cpu::set3_a(std::vector<unsigned char> parms) {
-	registers. = set(0b1000, registers.);
+	registers.a = set(0b1000, registers.a);
 }
 //0xE0 Set bit 4 in register b, Flags(-,-,-,-)     
 void Cpu::set4_b(std::vector<unsigned char> parms) {
