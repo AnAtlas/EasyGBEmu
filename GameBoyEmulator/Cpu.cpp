@@ -5,12 +5,17 @@
 #include <Windows.h>
 #include "Gameboy.hpp"
 #include "Opcodes.hpp"
+#include "Debug.hpp"
+#include <assert.h>
 
-
-Cpu::Cpu(GameboyModes gameboyMode) : jumped(false),gameboyMode(gameboyMode){
-	setRegisters();
+Cpu::Cpu(GameboyModes gameboyMode, Memory* mem) : memory(mem),jumped(false),gameboyMode(gameboyMode){
+	reset();
 	generateInstructions();
 	cbMode = false;
+	debugCheck = false;
+	masterInterruptEnable = true;
+	pendingMasterInterruptEnable = false;
+	pendingMasterInterruptDisable = false;
 }
 
 void Cpu::runCommand(std::string command) {
@@ -33,29 +38,70 @@ void Cpu::runCommand(std::string command) {
 	}
 }
 
+void Cpu::reset() {
+	halted = false;
+	setRegisters();
+	memory->resetIO();
+}
+
 unsigned char Cpu::step() {
 	unsigned char nextOp = memory->readByte(registers.pc);
-	Instruction nextIns = instructions[nextOp];
+	Instruction nextIns;
+	if (cbMode)
+		nextIns = extInstructions[nextOp];
+	else
+		nextIns = instructions[nextOp];
 	std::vector<unsigned char> parms;
 	if (nextIns.parameterLength > 0)
 		parms.push_back(memory->readByte(registers.pc + 1));
 	if (nextIns.parameterLength > 1)
 		parms.push_back(memory->readByte(registers.pc + 2));
-	std::cout <<"\n"<< nextIns.instruction << " : Parms <- ";
-	if (parms.size() > 0) {
-		for (unsigned char i : parms) {
-			std::cout <<  std::hex << "0x" << static_cast<unsigned>(i) << ", ";
+	if (Debug) {
+		std::cout << "\n" << nextIns.instruction << " : Parms <- ";
+		if (parms.size() > 0) {
+			for (unsigned char i : parms) {
+				std::cout << std::hex << "0x" << static_cast<unsigned>(i) << ", ";
+			}
 		}
 	}
+	if (registers.pc == 0xe0)
+		debugCheck = true;
+	if (Logging) {
+		char buffer[200];
+		if (!cbMode)
+			sprintf(buffer, "OP = %x PC = %x AF = %x BC = %x DE = %x HL = %x\n", nextOp, registers.pc, registers.af, registers.bc, registers.de, registers.hl);
+		else
+			sprintf(buffer, "-OP = %x PC = %x AF = %x BC = %x DE = %x HL = %x\n", nextOp, registers.pc, registers.af, registers.bc, registers.de, registers.hl);
+		DebugLogMessage(buffer);
+	}
+
 	clock.m = nextIns.parameterLength + 1;
 	clock.t = nextIns.ticks;
+	registers.pc += clock.m;
+	
 	if (cbMode) {
 		(this->*(extInstructions[nextOp].fp))(parms);
 		cbMode = false;
 	}
 	else
 		(this->*(instructions[nextOp].fp))(parms);
-	registers.pc += clock.m;
+	
+	//Disabling interrupts happens after the next opcode is finished
+	if (pendingMasterInterruptDisable) {
+		if (memory->readByte(registers.pc - 1) != 0xF3) {
+			pendingMasterInterruptDisable = false;
+			masterInterruptEnable = false;
+		}
+	}
+	//Enabling interrupts happens after the next opcode is finished
+	if (pendingMasterInterruptEnable) {
+		if (memory->readByte(registers.pc - 1) != 0xFB) {
+			pendingMasterInterruptDisable = false;
+			masterInterruptEnable = true;
+		}
+	}
+
+	checkInterrupts();
 	return clock.t;
 }
 
@@ -66,8 +112,48 @@ void Cpu::setRegisters() {
 		registers.de = 0x00D8;
 		registers.hl = 0x014D;
 		registers.sp = 0xFFFE;
-		registers.pc = 0x0000;
+		registers.pc = 0x0100;
 	}
+}
+
+void Cpu::checkInterrupts() {
+	//Check if interrupts are enabled
+	if (masterInterruptEnable) {
+		//Check if anything requested an interrupt
+		unsigned char flags = memory->readByte(Address::IntFlags);
+		if (flags > 0) {
+			//Interrupt with lower bit has higher priority
+			//EX. VBlank = bit 0, Joypad = bit 4, VBlank happens first
+			for (int bit = 0; bit < 8; bit++) {
+				if (flags & (1 << bit)) {
+					//Check if selected interrupt is enabled
+					unsigned char enabledInt = memory->readByte(Address::IeRegister);
+					if (enabledInt & (1 << bit)) {
+						serviceInterrupt(bit);
+					}
+				}
+			}
+		}
+	}
+}
+
+void Cpu::serviceInterrupt(unsigned char bit) {
+	memory->writeShortToStack(registers.pc, &registers.sp);
+	halted = false;
+
+	char buffer[200];
+	sprintf(buffer, "Servicing interrupt on bit %d", bit);
+	DebugLogMessage(buffer);
+
+	switch (bit) {
+		case 0: registers.pc = Address::IntVBlank; break;
+		case 1: registers.pc = Address::IntLCDState; break;
+		case 2: registers.pc = Address::IntTimer; break;
+		case 3: registers.pc = Address::IntJoypad; break;
+		default: assert(false); break;
+	}
+	masterInterruptEnable = false;
+	memory->writeByte(Address::IntFlags, res(bit, memory->readByte(Address::IntFlags)));
 }
 
 bool Cpu::checkFlag(unsigned char flag) {
@@ -86,12 +172,8 @@ void Cpu::clearAllFlags() {
 	registers.f = 0;
 }
 
-void Cpu::reset() {
-	stopped = false;
-}
-
 unsigned char Cpu::inc(unsigned char val) {
-	if ((val & 0x0F) == 0x0F)
+	if (val == 0x0F)
 		setFlag(Flags::HalfCarry);
 	else
 		clearFlag(Flags::HalfCarry);
@@ -105,10 +187,10 @@ unsigned char Cpu::inc(unsigned char val) {
 }
 
 unsigned char Cpu::dec(unsigned char val) {
-	if ((val & 0x10) == 0x10)
-		setFlag(Flags::HalfCarry);
-	else
+	if (val & 0x0F)
 		clearFlag(Flags::HalfCarry);
+	else
+		setFlag(Flags::HalfCarry);
 	val--;
 	if (val == 0x00)
 		setFlag(Flags::Zero);
@@ -305,7 +387,8 @@ unsigned char Cpu::swap(unsigned char byte) {
 
 //Test bit b in byte, set zero flag if bit b in byte = 0
 void Cpu::bit(unsigned char bit, unsigned char byte) {
-	if (bit & byte)
+	unsigned char b = (1 << bit);
+	if (b & byte)
 		clearFlag(Flags::Zero);
 	else
 		setFlag(Flags::Zero);
@@ -315,12 +398,14 @@ void Cpu::bit(unsigned char bit, unsigned char byte) {
 
 //Reset bit b in byte
 unsigned char Cpu::res(unsigned char bit, unsigned char byte) {
-	return byte & (~bit);
+	unsigned char b = (1 << bit);
+	return byte & (~b);
 }
 
 //Turn on the bit in position bit, in byte
 unsigned char Cpu::set(unsigned char bit, unsigned char byte) {
-	byte |= bit;
+	unsigned char b = (1 << bit);
+	byte |= b;
 	return byte;
 }
 
@@ -401,9 +486,11 @@ unsigned char Cpu::subCarry(unsigned char b) {
 }
 
 void Cpu::enableInterrupts() {
+	pendingMasterInterruptEnable = true;
 }
 
 void Cpu::disableInterrupts() {
+	pendingMasterInterruptDisable = false;
 }
 
 void Cpu::printRegisters() {
@@ -433,7 +520,6 @@ void Cpu::null(std::vector<unsigned char> parms) {
 }
 //0x00 Do nothing
 void Cpu::nop(std::vector<unsigned char> parms) {
-	std::cout << "NOP" << std::endl;
 }
 //0x01 Store 2 byte value, nn, into the bc register
 void Cpu::ld_bc_nn(std::vector<unsigned char> parms) {

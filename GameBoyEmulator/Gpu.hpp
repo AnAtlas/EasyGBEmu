@@ -87,6 +87,7 @@ private:
 	unsigned char currentLine;
 
 	void renderScanLine();
+	void compareLYToLYC();
 	Color getBackgroundPaletteShade(Color color);
 public:
 	Gpu(sf::RenderWindow* window);

@@ -1,7 +1,7 @@
 #include "Memory.hpp"
 #include "Rom.hpp"
 #include "Gpu.hpp"
-
+#include "Debug.hpp"
 #include <iostream>
 
 unsigned char bios [] = {
@@ -39,15 +39,27 @@ void Memory::copy(unsigned short destination, unsigned short source, size_t leng
 void Memory::writeByte(unsigned short address, unsigned char value) {
 	if (address >= Address::Echo && address < Address::Oam) {
 		memory.wram[address - Address::Echo] = value;
+		memory.echo[address - Address::Echo] = value;
+		return;
 	}
-	if (addressOnCartridge(address) && !inBios) {
+	if ((inBios && address >= 0x100 && addressOnCartridge(address)) || (!inBios && addressOnCartridge(address))) {
 		cartridge->writeByte(address, value);
 		return;
 	}
+	//FF44 shows horizontal scanline being drawn, writing here resets to 0
+	if (address == 0xFF44) {
+		memory.totalMemory[0xFF44] = 0;
+		return;
+	}
 	memory.totalMemory[address] = value;
-	if (address >= Address::Vram && address < Address::Sram)
+	if (address >= Address::Vram && address < Address::Sram) {
 		gpu->updateTile(address, value);
-	std::cout << std::hex << memory.totalMemory[address];
+		if (value != 0)
+			int a = 0;
+	}
+	
+	if (Debug)
+		std::cout << std::hex << memory.totalMemory[address];
 }
 
 void Memory::writeShort(unsigned short address, unsigned short value) {
@@ -64,7 +76,7 @@ unsigned char Memory::readByte(unsigned short address) {
 	if (address >= Address::Echo && address < Address::Oam - 1) {
 		return memory.wram[address - Address::Echo];
 	}
-	if (addressOnCartridge(address) && !inBios)
+	if ((inBios && address >= 0x100 && addressOnCartridge(address)) || (!inBios && addressOnCartridge(address)))
 		return cartridge->readByte(address);
 	return memory.totalMemory[address];
 }
@@ -89,4 +101,39 @@ bool Memory::addressOnCartridge(unsigned short address) {
 
 unsigned char* Memory::getBytePointer(unsigned short address) {
 	return &(memory.totalMemory[address]);
+}
+
+void Memory::resetIO() {
+	memory.totalMemory[0xFF00] = 0xFF;
+	memory.totalMemory[0xFF05] = 0x00;
+	memory.totalMemory[0xFF06] = 0x00;
+	memory.totalMemory[0xFF07] = 0x00;
+	memory.totalMemory[0xFF10] = 0x80;
+	memory.totalMemory[0xFF11] = 0xBF;
+	memory.totalMemory[0xFF12] = 0xF3;
+	memory.totalMemory[0xFF14] = 0xBF;
+	memory.totalMemory[0xFF16] = 0x3F;
+	memory.totalMemory[0xFF17] = 0x00;
+	memory.totalMemory[0xFF19] = 0xBF;
+	memory.totalMemory[0xFF1A] = 0x7F;
+	memory.totalMemory[0xFF1B] = 0xFF;
+	memory.totalMemory[0xFF1C] = 0x9F;
+	memory.totalMemory[0xFF1E] = 0xBF;
+	memory.totalMemory[0xFF20] = 0xFF;
+	memory.totalMemory[0xFF21] = 0x00;
+	memory.totalMemory[0xFF22] = 0x00;
+	memory.totalMemory[0xFF23] = 0xBF;
+	memory.totalMemory[0xFF24] = 0x77;
+	memory.totalMemory[0xFF25] = 0xF3;
+	memory.totalMemory[0xFF26] = 0xF1;
+	memory.totalMemory[0xFF40] = 0x91;
+	memory.totalMemory[0xFF42] = 0x00;
+	memory.totalMemory[0xFF43] = 0x00;
+	memory.totalMemory[0xFF45] = 0x00;
+	memory.totalMemory[0xFF47] = 0xFC;
+	memory.totalMemory[0xFF48] = 0xFF;
+	memory.totalMemory[0xFF49] = 0xFF;
+	memory.totalMemory[0xFF4A] = 0x00;
+	memory.totalMemory[0xFF4B] = 0x00;
+	memory.totalMemory[0xFFFF] = 0x00;
 }

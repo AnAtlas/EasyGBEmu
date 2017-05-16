@@ -20,6 +20,12 @@ Gpu::Gpu(sf::RenderWindow* window): window(window) {
 			frameBuffer[i * SCREEN_WIDTH + j] = palette[Color::White];
 		}
 	}
+
+	for (int i = 0; i < 384; i++) {
+		for (int j = 0; j < 8; j++)
+			for (int k = 0; k < 8; k++)
+				tiles[i][j][k] = 0;
+	}
 	memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
 	renderTexture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
 	renderTexture.setSmooth(false);
@@ -150,9 +156,10 @@ void Gpu::renderScanLine() {
 
 	//Read tile index from background map
 	RGB color;
-
 	unsigned short tile = memory->readShort(mapOffset + lineOffset + Address::Vram);
 
+	if (tile != 0)
+		tile = memory->readShort(mapOffset + lineOffset + Address::Vram);
 	//If the tile data set in use is 1, the indeces are signed; calculate tile offset
 	if (*lcdControlRegister & LCDControlFlags::BackgroundWindowTileDataSelect)
 		if (tile < 128)
@@ -160,8 +167,8 @@ void Gpu::renderScanLine() {
 
 
 	for (int i = 0; i < 160; i++) {
-		Color color = (Color)(tiles[tile][y][x]);
-
+		//Color color = (Color)(tiles[tile][y][x]);
+		Color color = Color::Black;
 		frameBuffer[pixelOffset] = palette[getBackgroundPaletteShade(color)];
 		x++;
 		if (x == 8) {

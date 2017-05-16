@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="WinMain">
+      <UniqueIdentifier>{52a60788-6581-48c9-b87c-adcfa0944eaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LogMessage">
+      <UniqueIdentifier>{7b0c33a9-4c42-482b-b96a-6ccb69db7c49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameSettings">
+      <UniqueIdentifier>{4b5ccd90-502c-45ff-914c-70876841c1dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gameboy">
+      <UniqueIdentifier>{7745ac85-dec9-45a5-8fd3-5ff01309fd73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Emulator">
+      <UniqueIdentifier>{6db014bd-f371-479d-b7b0-54d2d0833033}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WinMain.cpp">
+      <Filter>WinMain</Filter>
+    </ClCompile>
+    <ClCompile Include="LogMessages.cpp">
+      <Filter>LogMessage</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSettings.cpp">
+      <Filter>GameSettings</Filter>
+    </ClCompile>
+    <ClCompile Include="GameBoy.cpp">
+      <Filter>Gameboy</Filter>
+    </ClCompile>
+    <ClCompile Include="Emulator.cpp">
+      <Filter>Emulator</Filter>
+    </ClCompile>
+    <ClCompile Include="Emulator.i8080Cpu.cpp">
+      <Filter>Emulator</Filter>
+    </ClCompile>
+    <ClCompile Include="Emulator.JumpTable.cpp">
+      <Filter>Emulator</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LogMessages.h">
+      <Filter>LogMessage</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSettings.h">
+      <Filter>GameSettings</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBoy.h">
+      <Filter>Gameboy</Filter>
+    </ClInclude>
+    <ClInclude Include="Emulator.h">
+      <Filter>Emulator</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -5,16 +5,15 @@
 #include <Windows.h>
 
 Gameboy::Gameboy(sf::RenderWindow* window) : window(window),running(false), gameboyMode(GameboyModes::DMG) {
-	cpu = new Cpu(gameboyMode);
-	rom = new Rom();
 	memory = new Memory();
+	cpu = new Cpu(gameboyMode, memory);
+	rom = new Rom();
 	gpu = new Gpu(window);
 	linkComponents();
 }
 
 void Gameboy::linkComponents() {
 	memory->linkRom(rom);
-	cpu->linkMemory(memory);
 	gpu->linkMemory(memory);
 	memory->linkGpu(gpu);
 }

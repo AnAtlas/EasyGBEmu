@@ -6,6 +6,7 @@
 #include "Gameboy.hpp"
 
 struct Instruction {
+	Instruction() {}
 	Instruction(std::string instruction, unsigned char parameterLength, unsigned char ticks,
 		void (Cpu::*fp)(std::vector<unsigned char> parms))
 		: instruction(instruction), parameterLength(parameterLength), ticks(ticks), fp(fp) {
@@ -29,15 +30,19 @@ private:
 	Memory* memory;
 	GameboyModes gameboyMode;
 	bool stopped;
+	bool halted;
 	bool jumped;
 	bool cbMode;
+	bool masterInterruptEnable;
+	bool pendingMasterInterruptEnable;
+	bool pendingMasterInterruptDisable;
 	void setRegisters();
 	void generateInstructions();
-
+	void checkInterrupts();
+	void serviceInterrupt(unsigned char bit);
 	std::vector<Instruction> instructions;
 	std::vector<Instruction> extInstructions;
-
-	void reset();
+	bool debugCheck;
 	void setFlag(unsigned char flag);
 	void clearFlag(unsigned char flag);
 	bool checkFlag(unsigned char flag);
@@ -70,13 +75,13 @@ private:
 	void disableInterrupts();
 
 public:
-	Cpu(GameboyModes gameboyMode);
+	Cpu(GameboyModes gameboyMode, Memory* mem);
 	void printRegisters();
 	unsigned char step();
 	void linkMemory(Memory* mem) { this->memory = mem; }
 	//Debug
 	void runCommand(std::string command);
-	
+	void reset();
 	//Instruction functions
 	void nop(std::vector<unsigned char> parms);			//0x00
 	void ld_bc_nn(std::vector<unsigned char> parms);	//0x01
@@ -345,7 +350,6 @@ public:
 	void rrc_a(std::vector<unsigned char> parms);
 	void rl_b(std::vector<unsigned char> parms);
 	void rl_c(std::vector<unsigned char> parms);
-	void rl_d(std::vector<unsigned char> parms);
 	void rl_d(std::vector<unsigned char> parms);
 	void rl_e(std::vector<unsigned char> parms);
 	void rl_h(std::vector<unsigned char> parms);

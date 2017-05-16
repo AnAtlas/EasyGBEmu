@@ -4,6 +4,10 @@ class Rom;
 class Gpu;
 
 enum Address {
+	IntVBlank = 0x40,
+	IntLCDState = 0x48,
+	IntTimer = 0x50,
+	IntJoypad = 0x60,
 	Cart1 = 0x0000,
 	Cart2 = 0x4000,
 	Vram = 0x8000,
@@ -14,6 +18,7 @@ enum Address {
 	Blank = 0xFEA0,
 	IoPorts = 0xFF00,
 	IntFlags = 0xFF0F,
+	LYC = 0xFF45,
 	Blank2 = 0xFF4C,
 	Hram = 0xFF80,
 	IeRegister = 0xFFFF
@@ -48,6 +53,7 @@ public:
 	Memory();
 	void linkRom(Rom* rom) { this->cartridge = rom; }
 	void linkGpu(Gpu* gpu) { this->gpu = gpu; }
+	void resetIO();
 	void writeByte(unsigned short address, unsigned char value);
 	void writeShort(unsigned short address, unsigned short value);
 	void writeShortToStack(unsigned short value, unsigned short* spRegister);
