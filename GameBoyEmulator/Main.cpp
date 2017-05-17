@@ -19,17 +19,6 @@ void consoleInput(sf::RenderWindow* window, Gameboy* gameboy) {
 	int a = 0;
 }
 
-void checkEvents(sf::RenderWindow* window) {
-	while (window->isOpen())
-	{
-		sf::Event event;
-		while (window->pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window->close();
-		}
-	}
-}
 
 int main()
 {
@@ -43,7 +32,7 @@ int main()
 	freopen("CONOUT$", "w", stderr);
 	freopen("CONIN$", "r", stdin);
 
-	gameboy->insertRom("TestRoms/banks.gb");
+	gameboy->insertRom("TestRoms/Tetris.gb");
 
 	std::thread console(consoleInput, &window, gameboy);
 	std::thread gb(&Gameboy::play, gameboy);

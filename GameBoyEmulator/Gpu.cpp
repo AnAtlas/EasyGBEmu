@@ -1,5 +1,6 @@
 #include "Gpu.hpp"
 #include "Memory.hpp"
+#include <iostream>
 
 const unsigned char SCREEN_WIDTH = 160;
 const unsigned char SCREEN_HEIGHT = 144;
@@ -26,7 +27,7 @@ Gpu::Gpu(sf::RenderWindow* window): window(window) {
 			for (int k = 0; k < 8; k++)
 				tiles[i][j][k] = 0;
 	}
-	memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
+	//memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
 	renderTexture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
 	renderTexture.setSmooth(false);
 	renderTexture.update(tFrameBuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
@@ -35,24 +36,14 @@ Gpu::Gpu(sf::RenderWindow* window): window(window) {
 
 void Gpu::linkMemory(Memory* memory) {
 	this->memory = memory;
-
-	lcdControlRegister = memory->getBytePointer(0xFF40);
-	lcdStatusRegister = memory->getBytePointer(0xFF41);
-	bgScrollY = memory->getBytePointer(0xFF42);
-	bgScrollX = memory->getBytePointer(0xFF43);
-	lineY = memory->getBytePointer(0xFF44);
-	lineYCompare = memory->getBytePointer(0xFF45);
-	windowY = memory->getBytePointer(0xFF4A);
-	windowX = memory->getBytePointer(0xFF4B);
-
-	bgPaletteData = memory->getBytePointer(0xFF47);
-	obPalette1Data = memory->getBytePointer(0xFF48);
-	obPalette2Data = memory->getBytePointer(0xFF49);
-
-	dmaTransfer = memory->getBytePointer(0xFF46);
 }
 
 void Gpu::step(unsigned char ticks) {
+	unsigned char lcdControlRegister = memory->readByte(Address::LcdControl);
+	unsigned char lineY = memory->readByte(Address::LineY);
+
+	if (!(lcdControlRegister && LCDControlFlags::DisplayEnable))
+		return;
 	modeClock += ticks;
 
 	switch (gpuMode) {
@@ -60,15 +51,15 @@ void Gpu::step(unsigned char ticks) {
 	case GPUMode::HBlank:
 		if (modeClock >= GPUTimings::HBlank) {
 			modeClock = 0;
-			(*lineY)++;
-			if (*lineY == 143) {
+			memory->writeByte(Address::LineY, memory->readByte(Address::LineY) + 1);
+			if (memory->readByte(Address::LineY) == 143) {
 				//Enter VBlank
 				gpuMode = GPUMode::VBlank;
 
 				//Push framebuffer to screen
 				memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
 				renderTexture.update(tFrameBuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
-
+				
 				window->clear();
 				window->draw(draw);
 				window->display();
@@ -81,10 +72,10 @@ void Gpu::step(unsigned char ticks) {
 	case GPUMode::VBlank:
 		if (modeClock >= GPUTimings::VBlank) {
 			modeClock = 0;
-			(*lineY)++;
-			if (*lineY > 153) {
+			memory->writeByte(Address::LineY, memory->readByte(Address::LineY) + 1);
+			if (memory->readByte(Address::LineY) > 153) {
 				gpuMode = GPUMode::OAM;
-				*lineY = 0;
+				memory->writeByte(Address::LineY, 0);
 			}
 		}
 		break;
@@ -104,7 +95,7 @@ void Gpu::step(unsigned char ticks) {
 			renderScanLine();
 		}
 	}
-	*lcdStatusRegister = (*lcdStatusRegister & 0xFC) | (gpuMode & 0x3);
+	memory->writeByte(Address::LcdStatus, (memory->readByte(Address::LcdStatus) & 0xFC) | (gpuMode & 0x3));
 }
 
 void Gpu::updateTile(unsigned short address, unsigned char value) {
@@ -122,28 +113,28 @@ void Gpu::updateTile(unsigned short address, unsigned char value) {
 }
 
 Color Gpu::getBackgroundPaletteShade(Color color) {
+	unsigned char bgPaletteData = memory->readByte(Address::BackgroundPalette);
 	if (color == Color::White)
-		return (Color)((*bgPaletteData) & 0x3);
+		return (Color)((bgPaletteData) & 0x3);
 	if (color == Color::LightGray)
-		return (Color)((*bgPaletteData) & 0xC);
+		return (Color)(((bgPaletteData) & 0xC) >> 2);
 	if (color == Color::DarkGray)
-		return (Color)((*bgPaletteData) & 0x30);
+		return (Color)(((bgPaletteData) & 0x30) >> 4);
 	if (color == Color::Black)
-		return (Color)((*bgPaletteData) & 0xC0);
+		return (Color)(((bgPaletteData) & 0xC0) >> 6);
 
 	return Color::White;
 }
 
 void Gpu::renderScanLine() {
-
-	//Check LCDControl Register for which offset the tile map is using
+	/*//Check LCDControl Register for which offset the tile map is using
 	unsigned char mapOffset = (*lcdControlRegister & (unsigned char)LCDControlFlags::BackgroundTileMapSelect) ? 0x1C00 : 0x1800;
 
 	//Check which line of tiles we're at
 	mapOffset += ((*lineY + *bgScrollY) & 0xFF) >> 3;
 
 	//Which tile to start with on the x coordinate
-	unsigned char lineOffset = (*bgScrollX >> 3);
+	unsigned char lineOffset = ((*bgScrollX) >> 3);
 
 	//which line of pixels to use in the tiles
 	unsigned char y = (*lineY + *bgScrollY) & 7;
@@ -152,14 +143,12 @@ void Gpu::renderScanLine() {
 	unsigned char x = *bgScrollX & 7;
 
 	//Where to draw on the texture
-	unsigned char pixelOffset = *lineY * 160;
+	unsigned int pixelOffset = *lineY * 160;
 
 	//Read tile index from background map
 	RGB color;
 	unsigned short tile = memory->readShort(mapOffset + lineOffset + Address::Vram);
 
-	if (tile != 0)
-		tile = memory->readShort(mapOffset + lineOffset + Address::Vram);
 	//If the tile data set in use is 1, the indeces are signed; calculate tile offset
 	if (*lcdControlRegister & LCDControlFlags::BackgroundWindowTileDataSelect)
 		if (tile < 128)
@@ -167,14 +156,112 @@ void Gpu::renderScanLine() {
 
 
 	for (int i = 0; i < 160; i++) {
-		//Color color = (Color)(tiles[tile][y][x]);
-		Color color = Color::Black;
-		frameBuffer[pixelOffset] = palette[getBackgroundPaletteShade(color)];
+		Color color = (Color)(tiles[tile][y][x]);
+		//Color color = Color::Black;
+		frameBuffer[i + pixelOffset] = palette[getBackgroundPaletteShade(color)];
 		x++;
 		if (x == 8) {
 			x = 0;
 			lineOffset = (lineOffset + 1) & 31;
 			tile = memory->readShort(mapOffset + lineOffset + Address::Vram);
 		}
+	}*/
+	bool unsignedIndex = true;
+	bool usingWindow = false;
+	unsigned short tileData = 0;
+	unsigned short backgroundMemory = 0;
+
+	unsigned char lcdControl = memory->readByte(Address::LcdControl);
+	unsigned char scrollX = memory->readByte(Address::ScrollX);
+	unsigned char scrollY = memory->readByte(Address::ScrollY);
+	unsigned char windowX = (memory->readByte(Address::WindowX)) - 7;
+	unsigned char windowY = memory->readByte(Address::WindowY);
+	unsigned char lineY = memory->readByte(Address::LineY);
+
+	//std::cout << std::hex << scrollY << std::endl;
+	if (scrollY == 0x4e)
+		int a = 4;
+
+	if (lcdControl & LCDControlFlags::WindowDisplayEnable) {
+		if (windowY <= lineY)
+			usingWindow = true;
+	}
+	else
+		usingWindow = false;
+
+	//Which tile data are we using?
+	if (lcdControl & LCDControlFlags::BackgroundWindowTileDataSelect)
+		tileData = 0x8000;
+	else {
+		tileData = 0x8800;
+		unsignedIndex = false;
+	}
+
+	//WHich background memory?
+	if (usingWindow == false) {
+		if (lcdControl & LCDControlFlags::BackgroundTileMapSelect)
+			backgroundMemory = 0x9C00;
+		else
+			backgroundMemory = 0x9800;
+	}
+	else {
+		if (LcdControl & LCDControlFlags::WindowTileMapSelect)
+			backgroundMemory = 0x9C00;
+		else
+			backgroundMemory = 0x9800;
+	}
+
+	//yPos = yPosition on the TileMap
+	unsigned char yPos = 0;
+
+	if (!usingWindow)
+		yPos = scrollY + lineY;
+	else
+		yPos = lineY - windowY;
+
+	unsigned short tileRow = (((unsigned char)(yPos / 8)) * 32);
+
+	for (int pixel = 0; pixel < 160; pixel++) {
+		unsigned char xPos = pixel + scrollX;
+
+		if (usingWindow) {
+			if (pixel >= windowX)
+				xPos = pixel - windowX;
+		}
+
+		unsigned short tileCol = (xPos / 8);
+		short tileNum;
+
+		if (unsignedIndex)
+			tileNum = (unsigned char)(memory->readByte(backgroundMemory + tileRow + tileCol));
+		else
+			tileNum = (signed char)(memory->readByte(backgroundMemory + tileCol + tileRow));
+
+		unsigned short tileLocation = tileData;
+
+		if (unsignedIndex)
+			tileLocation += (tileNum * 16);
+		else
+			tileLocation += ((tileNum + 128) * 16);
+
+		unsigned char line = yPos % 8;
+		line *= 2;
+		unsigned char data1 = memory->readByte(tileLocation + line);
+		unsigned char data2 = memory->readByte(tileLocation + line + 1);
+
+		int colorBit = xPos % 8;
+		colorBit -= 7;
+		colorBit *= -1;
+
+		int colorNum = data2 & (1 << colorBit);
+		colorNum <<= 1;
+		colorNum |= data1 & (1 << colorBit);
+
+		Color color = (Color)(colorNum);
+
+		if (getBackgroundPaletteShade(color) != Color::White)
+			int a = 0;
+
+		frameBuffer[lineY * 160  + pixel ] = palette[getBackgroundPaletteShade(color)];
 	}
 }

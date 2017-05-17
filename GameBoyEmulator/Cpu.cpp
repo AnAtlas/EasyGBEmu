@@ -51,6 +51,8 @@ unsigned char Cpu::step() {
 		nextIns = extInstructions[nextOp];
 	else
 		nextIns = instructions[nextOp];
+	if (registers.pc == 0x6a)
+		int a = 1;
 	std::vector<unsigned char> parms;
 	if (nextIns.parameterLength > 0)
 		parms.push_back(memory->readByte(registers.pc + 1));
@@ -64,8 +66,15 @@ unsigned char Cpu::step() {
 			}
 		}
 	}
-	if (registers.pc == 0xe0)
+	if (registers.pc == 0x95) {
+		Logging = true;
 		debugCheck = true;
+		char buffer[200];
+		sprintf(buffer, "HERE");
+		DebugLogMessage(buffer);
+	}
+	if (registers.pc == 0x2b)
+		int a = 0;
 	if (Logging) {
 		char buffer[200];
 		if (!cbMode)
@@ -438,7 +447,9 @@ unsigned char Cpu::addBytes(unsigned char a, unsigned char b) {
 		setFlag(Flags::Carry);
 	else
 		clearFlag(Flags::Carry);
-	if (a + b)
+
+	//Derek, used to be if (a+b), but not working
+	if ((unsigned char)(a + b))
 		clearFlag(Flags::Zero);
 	else
 		setFlag(Flags::Zero);
@@ -687,10 +698,17 @@ void Cpu::rra(std::vector<unsigned char> parms) {
 //0x20 Jump to address sp + (signed)n if zero flag is not set, Flags(-,-,-,-)
 void Cpu::jr_nz_n(std::vector<unsigned char> parms) {
 	signed char addressOffset = (signed char)parms[0];
-	if (!checkFlag(Flags::Zero)) 
+	if (!checkFlag(Flags::Zero)) {
+		if (registers.pc == 0x3e)
+			int a = 0;
 		registers.pc += addressOffset;
-	else
+	}
+	else {
 		clock.t = 8;
+		if (registers.pc == 0x3e)
+			int a = 0;
+	}
+		
 }
 //0x21 Store unsigned short into register hl
 void Cpu::ld_hl_nn(std::vector<unsigned char> parms) {

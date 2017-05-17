@@ -68,18 +68,6 @@ private:
 	sf::RenderWindow* window;
 	sf::Texture renderTexture;
 	sf::Sprite draw;
-	unsigned char* lcdControlRegister; //Memory address 0xFF40
-	unsigned char* lcdStatusRegister; // Memory address 0xFF41
-	unsigned char* bgScrollY; //0xFF42
-	unsigned char* bgScrollX; // 0xFF43
-	unsigned char* lineY;	//0xFF44
-	unsigned char* lineYCompare;	//0xFF45
-	unsigned char* windowY;	//0xFF4A
-	unsigned char* windowX;	//0xFF4B window X position - 7
-
-	unsigned char* bgPaletteData; // 0xFF47
-	unsigned char* obPalette1Data; // 0xFF48
-	unsigned char* obPalette2Data; // 0xFF49
 
 	unsigned char* dmaTransfer; //0xFF46 Writing to this launches DMA transfer from ROM or RAM to OAM memory
 

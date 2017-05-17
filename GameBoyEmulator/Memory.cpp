@@ -50,14 +50,18 @@ void Memory::writeByte(unsigned short address, unsigned char value) {
 		return;
 	}
 	//FF44 shows horizontal scanline being drawn, writing here resets to 0
-	if (address == 0xFF44) {
-		memory.totalMemory[0xFF44] = 0;
-		return;
-	}
+	//if (address == 0xFF44) {
+		//memory.totalMemory[0xFF44] = 0;
+	//	return;
+	//}
+	if (address == Address::LcdControl)
+		int a = 0;
+	if (inBios && address == Address::ExitBios)
+		inBios = false;
 	memory.totalMemory[address] = value;
 	if (address >= Address::Vram && address < Address::Sram) {
 		gpu->updateTile(address, value);
-		if (value != 0)
+		if (value == 0xf0)
 			int a = 0;
 	}
 	
@@ -107,36 +111,73 @@ unsigned char* Memory::getBytePointer(unsigned short address) {
 }
 
 void Memory::resetIO() {
-	memory.totalMemory[0xFF00] = 0xFF;
-	memory.totalMemory[0xFF05] = 0x00;
-	memory.totalMemory[0xFF06] = 0x00;
-	memory.totalMemory[0xFF07] = 0x00;
-	memory.totalMemory[0xFF10] = 0x80;
-	memory.totalMemory[0xFF11] = 0xBF;
-	memory.totalMemory[0xFF12] = 0xF3;
-	memory.totalMemory[0xFF14] = 0xBF;
-	memory.totalMemory[0xFF16] = 0x3F;
-	memory.totalMemory[0xFF17] = 0x00;
-	memory.totalMemory[0xFF19] = 0xBF;
-	memory.totalMemory[0xFF1A] = 0x7F;
-	memory.totalMemory[0xFF1B] = 0xFF;
-	memory.totalMemory[0xFF1C] = 0x9F;
-	memory.totalMemory[0xFF1E] = 0xBF;
-	memory.totalMemory[0xFF20] = 0xFF;
-	memory.totalMemory[0xFF21] = 0x00;
-	memory.totalMemory[0xFF22] = 0x00;
-	memory.totalMemory[0xFF23] = 0xBF;
-	memory.totalMemory[0xFF24] = 0x77;
-	memory.totalMemory[0xFF25] = 0xF3;
-	memory.totalMemory[0xFF26] = 0xF1;
-	memory.totalMemory[0xFF40] = 0x91;
-	memory.totalMemory[0xFF42] = 0x00;
-	memory.totalMemory[0xFF43] = 0x00;
-	memory.totalMemory[0xFF45] = 0x00;
-	memory.totalMemory[0xFF47] = 0xFC;
-	memory.totalMemory[0xFF48] = 0xFF;
-	memory.totalMemory[0xFF49] = 0xFF;
-	memory.totalMemory[0xFF4A] = 0x00;
-	memory.totalMemory[0xFF4B] = 0x00;
-	memory.totalMemory[0xFFFF] = 0x00;
+	if (inBios) {
+		memory.totalMemory[0xFF00] = 0x00;
+		memory.totalMemory[0xFF05] = 0x00;
+		memory.totalMemory[0xFF06] = 0x00;
+		memory.totalMemory[0xFF07] = 0x00;
+		memory.totalMemory[0xFF10] = 0x80;
+		memory.totalMemory[0xFF11] = 0x00;
+		memory.totalMemory[0xFF12] = 0x00;
+		memory.totalMemory[0xFF14] = 0x00;
+		memory.totalMemory[0xFF16] = 0x00;
+		memory.totalMemory[0xFF17] = 0x00;
+		memory.totalMemory[0xFF19] = 0x00;
+		memory.totalMemory[0xFF1A] = 0x00;
+		memory.totalMemory[0xFF1B] = 0x00;
+		memory.totalMemory[0xFF1C] = 0x00;
+		memory.totalMemory[0xFF1E] = 0x00;
+		memory.totalMemory[0xFF20] = 0x00;
+		memory.totalMemory[0xFF21] = 0x00;
+		memory.totalMemory[0xFF22] = 0x00;
+		memory.totalMemory[0xFF23] = 0x00;
+		memory.totalMemory[0xFF24] = 0x00;
+		memory.totalMemory[0xFF25] = 0x00;
+		memory.totalMemory[0xFF26] = 0x00;
+		memory.totalMemory[0xFF40] = 0x00; //LCDC
+		memory.totalMemory[0xFF42] = 0x00; //SCY
+		memory.totalMemory[0xFF43] = 0x00; //SCX
+		memory.totalMemory[0xFF45] = 0x00; //LYC
+		memory.totalMemory[0xFF47] = 0x00; //BGP
+		memory.totalMemory[0xFF48] = 0x00; //OBP0
+		memory.totalMemory[0xFF49] = 0x00; //OBP1
+		memory.totalMemory[0xFF4A] = 0x00; //WY
+		memory.totalMemory[0xFF4B] = 0x00; //WX
+		memory.totalMemory[0xFFFF] = 0x00; //IE
+	}
+	else {
+		memory.totalMemory[0xFF00] = 0xFF;
+		memory.totalMemory[0xFF05] = 0x00;
+		memory.totalMemory[0xFF06] = 0x00;
+		memory.totalMemory[0xFF07] = 0x00;
+		memory.totalMemory[0xFF10] = 0x80;
+		memory.totalMemory[0xFF11] = 0xBF;
+		memory.totalMemory[0xFF12] = 0xF3;
+		memory.totalMemory[0xFF14] = 0xBF;
+		memory.totalMemory[0xFF16] = 0x3F;
+		memory.totalMemory[0xFF17] = 0x00;
+		memory.totalMemory[0xFF19] = 0xBF;
+		memory.totalMemory[0xFF1A] = 0x7F;
+		memory.totalMemory[0xFF1B] = 0xFF;
+		memory.totalMemory[0xFF1C] = 0x9F;
+		memory.totalMemory[0xFF1E] = 0xBF;
+		memory.totalMemory[0xFF20] = 0xFF;
+		memory.totalMemory[0xFF21] = 0x00;
+		memory.totalMemory[0xFF22] = 0x00;
+		memory.totalMemory[0xFF23] = 0xBF;
+		memory.totalMemory[0xFF24] = 0x77;
+		memory.totalMemory[0xFF25] = 0xF3;
+		memory.totalMemory[0xFF26] = 0xF1;
+		memory.totalMemory[0xFF40] = 0x91; //LCDC
+		memory.totalMemory[0xFF42] = 0x00; //SCY
+		memory.totalMemory[0xFF43] = 0x00; //SCX
+		memory.totalMemory[0xFF45] = 0x00; //LYC
+		memory.totalMemory[0xFF47] = 0xFC; //BGP
+		memory.totalMemory[0xFF48] = 0xFF; //OBP0
+		memory.totalMemory[0xFF49] = 0xFF; //OBP1
+		memory.totalMemory[0xFF4A] = 0x00; //WY
+		memory.totalMemory[0xFF4B] = 0x00; //WX
+		memory.totalMemory[0xFFFF] = 0x00; //IE
+	}
+	
 }

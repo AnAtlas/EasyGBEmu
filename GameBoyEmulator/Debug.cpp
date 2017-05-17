@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 bool Debug = false;
-bool Logging = true;
+bool Logging = false;
 bool fileOpen = false;
 struct _iobuf;
 

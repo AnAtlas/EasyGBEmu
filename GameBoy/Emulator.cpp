@@ -78,7 +78,7 @@ bool Emulator::LoadRom(const std::string& romName)
 	memcpy(&m_Rom[0x0], &m_GameBank[0], 0x8000) ; // this is read only and never changes
 
 	//DEREK
-	//memcpy(&m_Rom[0x0], bios, sizeof(bios));
+	memcpy(&m_Rom[0x0], bios, sizeof(bios));
 	m_CurrentRomBank = 1;
 
 	return true ;
@@ -121,7 +121,8 @@ bool Emulator::ResetCPU( )
 	m_TotalOpcodes = 0 ;
 	m_JoypadState = 0xFF ;
 	m_CyclesThisUpdate = 0 ;
-	m_ProgramCounter = 0x100 ;
+	//Derek
+	m_ProgramCounter = 0x000 ;
 	m_RegisterAF.hi = 0x1;
 	m_RegisterAF.lo = 0xB0 ;
 	m_RegisterBC.reg = 0x0013 ;
@@ -275,6 +276,15 @@ BYTE Emulator::ExecuteNextOpcode( )
 
 	BYTE opcode = m_Rom[m_ProgramCounter] ;
 
+	//Derek
+	if (m_ProgramCounter == 0x95) {
+		char buffer[200];
+		sprintf(buffer, "HERE");
+		LogMessage::GetSingleton()->DoLogMessage(buffer, false);
+	}
+
+	if (m_ProgramCounter == 0x2b)
+		int a = 0;
 	if ((m_ProgramCounter >= 0x4000 && m_ProgramCounter <= 0x7FFF) || (m_ProgramCounter >= 0xA000 && m_ProgramCounter <= 0xBFFF))
 		opcode = ReadMemory(m_ProgramCounter) ;
 
@@ -905,6 +915,8 @@ void Emulator::RenderBackground(BYTE lcdControl)
 			colourNum |= BitGetVal(data1,colourBit) ;
 
 			COLOUR col = GetColour(colourNum, 0xFF47) ;
+			if (col != WHITE)
+				int a = 4;
 			int red = 0;
 			int green = 0;
 			int blue = 0;
