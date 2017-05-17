@@ -27,7 +27,7 @@ private:
 	sf::RenderWindow* window;
 	void linkComponents();
 public:
-	Gameboy(sf::RenderWindow* window);
+	Gameboy(sf::RenderWindow* window, bool runBios);
 	bool insertRom(std::string romPath);
 	void play();
 	void shutDown();

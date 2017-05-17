@@ -8,7 +8,7 @@
 #include "Debug.hpp"
 #include <assert.h>
 
-Cpu::Cpu(GameboyModes gameboyMode, Memory* mem) : memory(mem),jumped(false),gameboyMode(gameboyMode){
+Cpu::Cpu(GameboyModes gameboyMode, Memory* mem, bool runBios) : memory(mem),jumped(false),gameboyMode(gameboyMode), runBios(runBios){
 	reset();
 	generateInstructions();
 	cbMode = false;
@@ -112,7 +112,10 @@ void Cpu::setRegisters() {
 		registers.de = 0x00D8;
 		registers.hl = 0x014D;
 		registers.sp = 0xFFFE;
-		registers.pc = 0x0100;
+		if (runBios)
+			registers.pc = 0x0000;
+		else
+			registers.pc = 0x0100;
 	}
 }
 

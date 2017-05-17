@@ -4,9 +4,9 @@
 #include "Gpu.hpp"
 #include <Windows.h>
 
-Gameboy::Gameboy(sf::RenderWindow* window) : window(window),running(false), gameboyMode(GameboyModes::DMG) {
-	memory = new Memory();
-	cpu = new Cpu(gameboyMode, memory);
+Gameboy::Gameboy(sf::RenderWindow* window, bool runBios) : window(window),running(false), gameboyMode(GameboyModes::DMG) {
+	memory = new Memory(runBios);
+	cpu = new Cpu(gameboyMode, memory, runBios);
 	rom = new Rom();
 	gpu = new Gpu(window);
 	linkComponents();

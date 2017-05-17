@@ -23,10 +23,10 @@ unsigned char bios [] = {
 	0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50
 };
 
-Memory::Memory() {
+Memory::Memory(bool runBios) {
 	memset(memory.totalMemory, 0, sizeof(memory.totalMemory));
 	memcpy(memory.totalMemory, bios, sizeof(bios));
-	inBios = true;
+	inBios = runBios;
 }
 
 void Memory::copy(unsigned short destination, unsigned short source, size_t length) {
@@ -36,6 +36,9 @@ void Memory::copy(unsigned short destination, unsigned short source, size_t leng
 	}
 }
 
+void Memory::biosFinished() {
+	inBios = false;
+}
 void Memory::writeByte(unsigned short address, unsigned char value) {
 	if (address >= Address::Echo && address < Address::Oam) {
 		memory.wram[address - Address::Echo] = value;

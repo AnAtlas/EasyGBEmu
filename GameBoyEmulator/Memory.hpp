@@ -50,10 +50,11 @@ private:
 	void copy(unsigned short destination, unsigned short source, size_t length);
 	bool addressOnCartridge(unsigned short address);
 public:
-	Memory();
+	Memory(bool runBios);
 	void linkRom(Rom* rom) { this->cartridge = rom; }
 	void linkGpu(Gpu* gpu) { this->gpu = gpu; }
 	void resetIO();
+	void biosFinished();
 	void writeByte(unsigned short address, unsigned char value);
 	void writeShort(unsigned short address, unsigned short value);
 	void writeShortToStack(unsigned short value, unsigned short* spRegister);

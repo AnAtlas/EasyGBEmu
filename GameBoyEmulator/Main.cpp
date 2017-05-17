@@ -7,6 +7,8 @@
 
 bool running = true;
 
+bool runBios = true;
+
 void consoleInput(sf::RenderWindow* window, Gameboy* gameboy) {
 	while (window->isOpen()) {
 		char line[100];
@@ -34,7 +36,7 @@ int main()
 	sf::RenderWindow window(sf::VideoMode(160, 144), "EasyGBEmu!");
 	window.setActive(false);
 
-	Gameboy* gameboy = new Gameboy(&window);
+	Gameboy* gameboy = new Gameboy(&window, runBios);
 
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);

@@ -39,6 +39,7 @@ private:
 	void setRegisters();
 	void generateInstructions();
 	void checkInterrupts();
+	bool runBios;
 	void serviceInterrupt(unsigned char bit);
 	std::vector<Instruction> instructions;
 	std::vector<Instruction> extInstructions;
@@ -75,7 +76,7 @@ private:
 	void disableInterrupts();
 
 public:
-	Cpu(GameboyModes gameboyMode, Memory* mem);
+	Cpu(GameboyModes gameboyMode, Memory* mem, bool runBios);
 	void printRegisters();
 	unsigned char step();
 	void linkMemory(Memory* mem) { this->memory = mem; }
