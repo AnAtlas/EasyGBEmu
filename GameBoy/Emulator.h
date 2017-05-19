@@ -1,6 +1,7 @@
 #pragma once
 #ifndef _EMULATOR_H
 #define _EMULATOR_H
+#include <stdio.h>
 
 typedef unsigned char BYTE ;
 typedef char SIGNED_BYTE ;
@@ -207,6 +208,7 @@ private:
 		int					m_DividerVariable ;
 		int					m_CurrentClockSpeed ;
 
+		FILE* cpuLog;
 
 };
 

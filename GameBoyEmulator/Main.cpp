@@ -32,7 +32,7 @@ int main()
 	freopen("CONOUT$", "w", stderr);
 	freopen("CONIN$", "r", stdin);
 
-	gameboy->insertRom("TestRoms/Tetris.gb");
+	gameboy->insertRom("TestRoms/10-bit ops.gb");
 
 	std::thread console(consoleInput, &window, gameboy);
 	std::thread gb(&Gameboy::play, gameboy);

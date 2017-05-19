@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 
 class Rom;
 class Gpu;
@@ -58,6 +59,8 @@ private:
 	Rom* cartridge;
 	Gpu* gpu;
 	Mem memory;
+	FILE* logFile;
+	bool logFileOpen;
 	bool inBios;
 	void copy(unsigned short destination, unsigned short source, size_t length);
 	bool addressOnCartridge(unsigned short address);
@@ -76,4 +79,5 @@ public:
 	unsigned short readShortFromStack(unsigned short* spRegister);
 
 	unsigned char* getBytePointer(unsigned short address);
+	void printMemory(unsigned char arrayIndex);
 };

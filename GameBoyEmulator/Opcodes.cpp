@@ -246,7 +246,7 @@ namespace Opcodes {
 		instructions.push_back(Instruction("RST 28H", 0, 16, &Cpu::rst_28));		//0xEF
 		instructions.push_back(Instruction("LD A, (0xFFXX)", 1, 12, &Cpu::ld_a_ffnp));	//0xF0
 		instructions.push_back(Instruction("POP AF", 0, 12, &Cpu::pop_af));		//0xF1
-		instructions.push_back(Instruction("LD A, (C)", 1, 8, &Cpu::ld_a_cp));		//0xF2
+		instructions.push_back(Instruction("LD A, (C)", 0, 8, &Cpu::ld_a_cp));		//0xF2
 		instructions.push_back(Instruction("DI", 0, 4, &Cpu::di));			//0xF3
 		instructions.push_back(Instruction("NULL", 0, 4, &Cpu::null));			//0xF4
 		instructions.push_back(Instruction("PUSH AF", 0, 16, &Cpu::push_af));		//0xF5

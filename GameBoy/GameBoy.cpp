@@ -78,7 +78,7 @@ GameBoy::GameBoy(void) :
 	m_Emulator(NULL)
 {
 	m_Emulator = new Emulator( ) ;
-	m_Emulator->LoadRom("ROMS/banks.gb") ;
+	m_Emulator->LoadRom("ROMS/03-op sp,hl.gb") ;
 	m_Emulator->InitGame( DoRender ) ;
 }
 

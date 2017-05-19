@@ -48,6 +48,7 @@ Emulator::Emulator(void) :
 	,m_DoLogging(false)
 {
 	ResetScreen( );
+	cpuLog = std::fopen("cpuLogOther.log", "w");
 }
 
 //////////////////////////////////////////////////////////////////
@@ -78,7 +79,7 @@ bool Emulator::LoadRom(const std::string& romName)
 	memcpy(&m_Rom[0x0], &m_GameBank[0], 0x8000) ; // this is read only and never changes
 
 	//DEREK
-	memcpy(&m_Rom[0x0], bios, sizeof(bios));
+	//memcpy(&m_Rom[0x0], bios, sizeof(bios));
 	m_CurrentRomBank = 1;
 
 	return true ;
@@ -122,7 +123,7 @@ bool Emulator::ResetCPU( )
 	m_JoypadState = 0xFF ;
 	m_CyclesThisUpdate = 0 ;
 	//Derek
-	m_ProgramCounter = 0x000 ;
+	m_ProgramCounter = 0x100 ;
 	m_RegisterAF.hi = 0x1;
 	m_RegisterAF.lo = 0xB0 ;
 	m_RegisterBC.reg = 0x0013 ;
@@ -271,20 +272,24 @@ void Emulator::DoGraphics( int cycles )
 
 //////////////////////////////////////////////////////////////////
 
+
 BYTE Emulator::ExecuteNextOpcode( )
 {
 
 	BYTE opcode = m_Rom[m_ProgramCounter] ;
 
-	//Derek
-	if (m_ProgramCounter == 0x95) {
-		char buffer[200];
-		sprintf(buffer, "HERE");
-		LogMessage::GetSingleton()->DoLogMessage(buffer, false);
+	unsigned char a = m_Rom[0xFF42];
+	std::fwrite(&a, sizeof(unsigned char), 1, cpuLog);
+	if (m_ProgramCounter == 0x8f) {
+		std::fclose(cpuLog);
 	}
 
-	if (m_ProgramCounter == 0x2b)
-		int a = 0;
+	if (m_ProgramCounter == 0x55) {
+		FILE* memFile;
+		memFile = std::fopen("otherMemory.log", "w");
+		std::fwrite(&m_Rom[0x8000], sizeof(unsigned char), 0x2000, memFile);
+		std::fclose(memFile);
+	}
 	if ((m_ProgramCounter >= 0x4000 && m_ProgramCounter <= 0x7FFF) || (m_ProgramCounter >= 0xA000 && m_ProgramCounter <= 0xBFFF))
 		opcode = ReadMemory(m_ProgramCounter) ;
 
@@ -915,8 +920,7 @@ void Emulator::RenderBackground(BYTE lcdControl)
 			colourNum |= BitGetVal(data1,colourBit) ;
 
 			COLOUR col = GetColour(colourNum, 0xFF47) ;
-			if (col != WHITE)
-				int a = 4;
+
 			int red = 0;
 			int green = 0;
 			int blue = 0;
@@ -927,7 +931,6 @@ void Emulator::RenderBackground(BYTE lcdControl)
 			case LIGHT_GRAY:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
 			case DARK_GRAY:	red = 0x77; green = 0x77 ; blue = 0x77; break ;
 			}
-
 			int finaly = ReadMemory(0xFF44) ;
 
 			if ((finaly < 0) || (finaly > 143) || (pixel < 0) || (pixel > 159))
@@ -935,7 +938,6 @@ void Emulator::RenderBackground(BYTE lcdControl)
 				assert(false);
 				continue ;
 			}
-
 			m_ScreenData[finaly][pixel][0] = red ;
 			m_ScreenData[finaly][pixel][1] = green ;
 			m_ScreenData[finaly][pixel][2] = blue ;

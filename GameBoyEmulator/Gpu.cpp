@@ -1,6 +1,7 @@
 #include "Gpu.hpp"
 #include "Memory.hpp"
 #include <iostream>
+#include <stdio.h>
 
 const unsigned char SCREEN_WIDTH = 160;
 const unsigned char SCREEN_HEIGHT = 144;
@@ -20,12 +21,6 @@ Gpu::Gpu(sf::RenderWindow* window): window(window) {
 		for (int j = 0; j < SCREEN_WIDTH; j++) {
 			frameBuffer[i * SCREEN_WIDTH + j] = palette[Color::White];
 		}
-	}
-
-	for (int i = 0; i < 384; i++) {
-		for (int j = 0; j < 8; j++)
-			for (int k = 0; k < 8; k++)
-				tiles[i][j][k] = 0;
 	}
 	//memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
 	renderTexture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -55,11 +50,23 @@ void Gpu::step(unsigned char ticks) {
 			if (memory->readByte(Address::LineY) == 143) {
 				//Enter VBlank
 				gpuMode = GPUMode::VBlank;
-
+				
 				//Push framebuffer to screen
 				memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
 				renderTexture.update(tFrameBuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
-				
+				int a = 0;
+				if (a == 1) {
+					FILE* memFile;
+					memFile = std::fopen("gpuLogFrameBuffer.log", "w");
+					std::fwrite(frameBuffer, sizeof(unsigned char), SCREEN_HEIGHT * SCREEN_WIDTH * 4, memFile);
+					std::fclose(memFile);
+				}
+				if (a == 1) {
+					FILE* memFile;
+					memFile = std::fopen("gpuLogtFrameBuffer.log", "w");
+					std::fwrite(tFrameBuffer, sizeof(unsigned char), SCREEN_HEIGHT * SCREEN_WIDTH * 4, memFile);
+					std::fclose(memFile);
+				}
 				window->clear();
 				window->draw(draw);
 				window->display();
@@ -127,45 +134,6 @@ Color Gpu::getBackgroundPaletteShade(Color color) {
 }
 
 void Gpu::renderScanLine() {
-	/*//Check LCDControl Register for which offset the tile map is using
-	unsigned char mapOffset = (*lcdControlRegister & (unsigned char)LCDControlFlags::BackgroundTileMapSelect) ? 0x1C00 : 0x1800;
-
-	//Check which line of tiles we're at
-	mapOffset += ((*lineY + *bgScrollY) & 0xFF) >> 3;
-
-	//Which tile to start with on the x coordinate
-	unsigned char lineOffset = ((*bgScrollX) >> 3);
-
-	//which line of pixels to use in the tiles
-	unsigned char y = (*lineY + *bgScrollY) & 7;
-
-	//Where in the tileline to start
-	unsigned char x = *bgScrollX & 7;
-
-	//Where to draw on the texture
-	unsigned int pixelOffset = *lineY * 160;
-
-	//Read tile index from background map
-	RGB color;
-	unsigned short tile = memory->readShort(mapOffset + lineOffset + Address::Vram);
-
-	//If the tile data set in use is 1, the indeces are signed; calculate tile offset
-	if (*lcdControlRegister & LCDControlFlags::BackgroundWindowTileDataSelect)
-		if (tile < 128)
-			tile += 256;
-
-
-	for (int i = 0; i < 160; i++) {
-		Color color = (Color)(tiles[tile][y][x]);
-		//Color color = Color::Black;
-		frameBuffer[i + pixelOffset] = palette[getBackgroundPaletteShade(color)];
-		x++;
-		if (x == 8) {
-			x = 0;
-			lineOffset = (lineOffset + 1) & 31;
-			tile = memory->readShort(mapOffset + lineOffset + Address::Vram);
-		}
-	}*/
 	bool unsignedIndex = true;
 	bool usingWindow = false;
 	unsigned short tileData = 0;
@@ -177,10 +145,6 @@ void Gpu::renderScanLine() {
 	unsigned char windowX = (memory->readByte(Address::WindowX)) - 7;
 	unsigned char windowY = memory->readByte(Address::WindowY);
 	unsigned char lineY = memory->readByte(Address::LineY);
-
-	//std::cout << std::hex << scrollY << std::endl;
-	if (scrollY == 0x4e)
-		int a = 4;
 
 	if (lcdControl & LCDControlFlags::WindowDisplayEnable) {
 		if (windowY <= lineY)
@@ -254,14 +218,12 @@ void Gpu::renderScanLine() {
 		colorBit *= -1;
 
 		int colorNum = data2 & (1 << colorBit);
+		colorNum >>= colorBit;
 		colorNum <<= 1;
-		colorNum |= data1 & (1 << colorBit);
+		colorNum |= ((data1 & (1 << colorBit)) >> colorBit);
 
 		Color color = (Color)(colorNum);
 
-		if (getBackgroundPaletteShade(color) != Color::White)
-			int a = 0;
-
-		frameBuffer[lineY * 160  + pixel ] = palette[getBackgroundPaletteShade(color)];
+		frameBuffer[lineY * SCREEN_WIDTH  + pixel ] = palette[getBackgroundPaletteShade(color)];
 	}
 }

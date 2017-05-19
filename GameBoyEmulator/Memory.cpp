@@ -3,6 +3,7 @@
 #include "Gpu.hpp"
 #include "Debug.hpp"
 #include <iostream>
+#include <stdio.h>
 
 unsigned char bios [] = {
 	0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,
@@ -27,6 +28,7 @@ Memory::Memory(bool runBios) {
 	memset(memory.totalMemory, 0, sizeof(memory.totalMemory));
 	memcpy(memory.totalMemory, bios, sizeof(bios));
 	inBios = runBios;
+	logFileOpen = false;
 }
 
 void Memory::copy(unsigned short destination, unsigned short source, size_t length) {
@@ -54,19 +56,9 @@ void Memory::writeByte(unsigned short address, unsigned char value) {
 		//memory.totalMemory[0xFF44] = 0;
 	//	return;
 	//}
-	if (address == Address::LcdControl)
-		int a = 0;
 	if (inBios && address == Address::ExitBios)
 		inBios = false;
 	memory.totalMemory[address] = value;
-	if (address >= Address::Vram && address < Address::Sram) {
-		gpu->updateTile(address, value);
-		if (value == 0xf0)
-			int a = 0;
-	}
-	
-	if (Debug)
-		std::cout << std::hex << memory.totalMemory[address];
 }
 
 void Memory::writeShort(unsigned short address, unsigned short value) {
@@ -179,5 +171,15 @@ void Memory::resetIO() {
 		memory.totalMemory[0xFF4B] = 0x00; //WX
 		memory.totalMemory[0xFFFF] = 0x00; //IE
 	}
+}
+
+void Memory::printMemory(unsigned char arrayIndex) {
+	//FILE* logFile;
+	if (!logFileOpen) {
+		logFile = std::fopen("memory.log", "w");
+		logFileOpen = true;
+	}
 	
+	std::fwrite(memory.vRam, sizeof(unsigned char), sizeof(memory.vRam), logFile);
+	std::fclose(logFile);
 }

@@ -3,7 +3,6 @@
 bool Debug = false;
 bool Logging = false;
 bool fileOpen = false;
-struct _iobuf;
 
 FILE * logFile;
 

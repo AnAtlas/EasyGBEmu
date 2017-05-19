@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <stdio.h>
 
 #include "Registers.hpp"
 #include "Memory.hpp"
@@ -29,6 +30,7 @@ private:
 	Clock clock;
 	Memory* memory;
 	GameboyModes gameboyMode;
+	FILE* logFile;
 	bool stopped;
 	bool halted;
 	bool jumped;

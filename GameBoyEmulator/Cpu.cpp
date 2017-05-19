@@ -16,6 +16,7 @@ Cpu::Cpu(GameboyModes gameboyMode, Memory* mem, bool runBios) : memory(mem),jump
 	masterInterruptEnable = true;
 	pendingMasterInterruptEnable = false;
 	pendingMasterInterruptDisable = false;
+	logFile = std::fopen("cpuLog.log", "w");
 }
 
 void Cpu::runCommand(std::string command) {
@@ -51,8 +52,6 @@ unsigned char Cpu::step() {
 		nextIns = extInstructions[nextOp];
 	else
 		nextIns = instructions[nextOp];
-	if (registers.pc == 0x6a)
-		int a = 1;
 	std::vector<unsigned char> parms;
 	if (nextIns.parameterLength > 0)
 		parms.push_back(memory->readByte(registers.pc + 1));
@@ -66,15 +65,7 @@ unsigned char Cpu::step() {
 			}
 		}
 	}
-	if (registers.pc == 0x95) {
-		Logging = true;
-		debugCheck = true;
-		char buffer[200];
-		sprintf(buffer, "HERE");
-		DebugLogMessage(buffer);
-	}
-	if (registers.pc == 0x2b)
-		int a = 0;
+	
 	if (Logging) {
 		char buffer[200];
 		if (!cbMode)
@@ -94,7 +85,6 @@ unsigned char Cpu::step() {
 	}
 	else
 		(this->*(instructions[nextOp].fp))(parms);
-	
 	//Disabling interrupts happens after the next opcode is finished
 	if (pendingMasterInterruptDisable) {
 		if (memory->readByte(registers.pc - 1) != 0xF3) {
@@ -531,6 +521,7 @@ void Cpu::generateInstructions() {
 }
 //NULL NOT IMPLEMENTED OPCODE
 void Cpu::null(std::vector<unsigned char> parms) {
+	assert(false);
 }
 //0x00 Do nothing
 void Cpu::nop(std::vector<unsigned char> parms) {
