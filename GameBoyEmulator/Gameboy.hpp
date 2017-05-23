@@ -7,6 +7,7 @@ class Memory;
 class Cpu;
 class Rom;
 class Gpu;
+class Timer;
 
 enum GameboyModes {
 	DMG,
@@ -20,6 +21,7 @@ private:
 	Rom* rom;
 	Memory* memory;
 	Gpu* gpu;
+	Timer* timer;
 	std::thread gameboyThread;
 
 	bool running;

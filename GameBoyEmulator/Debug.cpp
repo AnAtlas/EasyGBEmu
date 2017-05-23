@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 bool Debug = false;
-bool Logging = false;
+bool Logging = true;
 bool fileOpen = false;
 
 FILE * logFile;
@@ -14,4 +14,8 @@ void DebugLogMessage(const char* message) {
 		fileOpen = true;
 	}
 	fputs(message, logFile);
+}
+
+void DebugLogMessageClose() {
+	fclose(logFile);
 }

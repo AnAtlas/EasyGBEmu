@@ -198,6 +198,7 @@ private:
 
 		BYTE				m_DebugValue ;
 
+		int opsRan;
 
 
 

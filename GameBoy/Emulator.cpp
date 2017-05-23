@@ -49,6 +49,7 @@ Emulator::Emulator(void) :
 {
 	ResetScreen( );
 	cpuLog = std::fopen("cpuLogOther.log", "w");
+	opsRan = 0;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -275,19 +276,18 @@ void Emulator::DoGraphics( int cycles )
 
 BYTE Emulator::ExecuteNextOpcode( )
 {
-
+	opsRan++;
 	BYTE opcode = m_Rom[m_ProgramCounter] ;
 
-	unsigned char a = m_Rom[0xFF42];
-	std::fwrite(&a, sizeof(unsigned char), 1, cpuLog);
-	if (m_ProgramCounter == 0x8f) {
+	if (opsRan == 12331) {
 		std::fclose(cpuLog);
 	}
-
-	if (m_ProgramCounter == 0x55) {
+	int b = 0;
+	if (b != 0) {
 		FILE* memFile;
 		memFile = std::fopen("otherMemory.log", "w");
-		std::fwrite(&m_Rom[0x8000], sizeof(unsigned char), 0x2000, memFile);
+		m_Rom[0x8010] = 0xFF;
+		std::fwrite(&(m_Rom[0]), sizeof(unsigned char), sizeof(m_Rom), memFile);
 		std::fclose(memFile);
 	}
 	if ((m_ProgramCounter >= 0x4000 && m_ProgramCounter <= 0x7FFF) || (m_ProgramCounter >= 0xA000 && m_ProgramCounter <= 0xBFFF))
@@ -298,7 +298,7 @@ BYTE Emulator::ExecuteNextOpcode( )
 		if (true)
 		{
 			char buffer[200] ;
-			sprintf(buffer, "OP = %x PC = %x AF = %x BC = %x DE = %x HL = %x\n", opcode, m_ProgramCounter, m_RegisterAF.reg, m_RegisterBC.reg, m_RegisterDE.reg, m_RegisterHL.reg) ;
+			sprintf(buffer, "%x OP = %x AF = %x BC = %x DE = %x HL = %x\n", m_ProgramCounter, opcode,  m_RegisterAF.reg, m_RegisterBC.reg, m_RegisterDE.reg, m_RegisterHL.reg) ;
 			LogMessage::GetSingleton()->DoLogMessage(buffer,false) ;
 		}
 

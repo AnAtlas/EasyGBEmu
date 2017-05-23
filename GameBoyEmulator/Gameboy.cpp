@@ -2,6 +2,8 @@
 #include "Cpu.hpp"
 #include "Rom.hpp"
 #include "Gpu.hpp"
+#include "Timer.hpp"
+
 #include <Windows.h>
 
 Gameboy::Gameboy(sf::RenderWindow* window, bool runBios) : window(window),running(false), gameboyMode(GameboyModes::DMG) {
@@ -9,12 +11,14 @@ Gameboy::Gameboy(sf::RenderWindow* window, bool runBios) : window(window),runnin
 	cpu = new Cpu(gameboyMode, memory, runBios);
 	rom = new Rom();
 	gpu = new Gpu(window);
+	timer = new Timer();
 	linkComponents();
 }
 
 void Gameboy::linkComponents() {
 	memory->linkRom(rom);
 	gpu->linkMemory(memory);
+	timer->linkMemory(memory);
 	memory->linkGpu(gpu);
 }
 
@@ -31,6 +35,7 @@ void Gameboy::play() {
 	unsigned char ticks;
 	while (running) {
 		ticks = cpu->step();
+		timer->step(ticks);
 		gpu->step(ticks);
 	}
 }

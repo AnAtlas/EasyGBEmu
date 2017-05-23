@@ -43,12 +43,12 @@ namespace Opcodes {
 		instructions.push_back(Instruction("INC H", 0, 4, &Cpu::inc_h));		//0x24
 		instructions.push_back(Instruction("DEC H", 0, 4, &Cpu::dec_h));		//0x25
 		instructions.push_back(Instruction("LD H, 0xXX", 1, 8, &Cpu::ld_h_n));		//0x26
-		instructions.push_back(Instruction("DAA", 1, 4, &Cpu::daa));			//0x27
+		instructions.push_back(Instruction("DAA", 0, 4, &Cpu::daa));			//0x27
 		instructions.push_back(Instruction("JR Z, 0xXX", 1, 12, &Cpu::jr_z_n));		//0x28
-		instructions.push_back(Instruction("ADD HL, HL", 1, 8, &Cpu::add_hl_hl));	//0x29
+		instructions.push_back(Instruction("ADD HL, HL", 0, 8, &Cpu::add_hl_hl));	//0x29
 		instructions.push_back(Instruction("LD A, (HL+)", 0, 8, &Cpu::ld_a_hlpi));	//0x2A
 		instructions.push_back(Instruction("DEC HL", 0, 8, &Cpu::dec_hl));		//0x2B
-		instructions.push_back(Instruction("INC HL", 0, 8, &Cpu::inc_hl));		//0x2C
+		instructions.push_back(Instruction("INC L", 0, 8, &Cpu::inc_l));		//0x2C
 		instructions.push_back(Instruction("DEC L", 0, 4, &Cpu::dec_l));		//0x2D
 		instructions.push_back(Instruction("LD L, 0xXX", 1, 8, &Cpu::ld_l_n));		//0x2E
 		instructions.push_back(Instruction("CPL", 0, 4, &Cpu::cpl));			//0x2F
@@ -271,7 +271,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("RLC E", 0, 8, &Cpu::rlc_e));
 		ins.push_back(Instruction("RLC H", 0, 8, &Cpu::rlc_h));
 		ins.push_back(Instruction("RLC L", 0, 8, &Cpu::rlc_l));
-		ins.push_back(Instruction("RLC (HL)", 0, 16, &Cpu::rlc_hlp));
+		ins.push_back(Instruction("RLC (HL)", 0, 16, &Cpu::rlc_hlp)); //0x06
 		ins.push_back(Instruction("RLC A", 0, 8, &Cpu::rlc_a));
 		ins.push_back(Instruction("RRC B", 0, 8, &Cpu::rrc_b));
 		ins.push_back(Instruction("RRC C", 0, 8, &Cpu::rrc_c));
@@ -281,7 +281,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("RRC L", 0, 8, &Cpu::rrc_l));
 		ins.push_back(Instruction("RRC (HL)", 0, 16, &Cpu::rrc_hlp));
 		ins.push_back(Instruction("RRC A", 0, 8, &Cpu::rrc_a));
-		ins.push_back(Instruction("RL B", 0, 8, &Cpu::rl_b));
+		ins.push_back(Instruction("RL B", 0, 8, &Cpu::rl_b));			//0x10
 		ins.push_back(Instruction("RL C", 0, 8, &Cpu::rl_c));
 		ins.push_back(Instruction("RL D", 0, 8, &Cpu::rl_d));
 		ins.push_back(Instruction("RL E", 0, 8, &Cpu::rl_e));
@@ -297,7 +297,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("RR L", 0, 8, &Cpu::rr_l));
 		ins.push_back(Instruction("RR (HL)", 0, 16, &Cpu::rr_hlp));
 		ins.push_back(Instruction("RR A", 0, 8, &Cpu::rr_a));
-		ins.push_back(Instruction("SLA B", 0, 8, &Cpu::sla_b));
+		ins.push_back(Instruction("SLA B", 0, 8, &Cpu::sla_b));			//0x20
 		ins.push_back(Instruction("SLA C", 0, 8, &Cpu::sla_c));
 		ins.push_back(Instruction("SLA D", 0, 8, &Cpu::sla_d));
 		ins.push_back(Instruction("SLA E", 0, 8, &Cpu::sla_e));
@@ -312,8 +312,8 @@ namespace Opcodes {
 		ins.push_back(Instruction("SRA H", 0, 8, &Cpu::sra_h));
 		ins.push_back(Instruction("SRA L", 0, 8, &Cpu::sra_l));
 		ins.push_back(Instruction("SRA (HL)", 0, 16, &Cpu::sra_hlp));
-		ins.push_back(Instruction("SRA A", 0, 8, &Cpu::sra_a));
-		ins.push_back(Instruction("SWAP B", 0, 8, &Cpu::swap_b));
+		ins.push_back(Instruction("SRA A", 0, 8, &Cpu::sra_a));	
+		ins.push_back(Instruction("SWAP B", 0, 8, &Cpu::swap_b));		//0x30
 		ins.push_back(Instruction("SWAP C", 0, 8, &Cpu::swap_c));
 		ins.push_back(Instruction("SWAP D", 0, 8, &Cpu::swap_d));
 		ins.push_back(Instruction("SWAP E", 0, 8, &Cpu::swap_e));
@@ -329,7 +329,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("SRL L", 0, 8, &Cpu::srl_l));
 		ins.push_back(Instruction("SRL (HL)", 0, 16, &Cpu::srl_hlp));
 		ins.push_back(Instruction("SRL A", 0, 8, &Cpu::srl_a));
-		ins.push_back(Instruction("BIT 0, B", 0, 8, &Cpu::bit0_b));
+		ins.push_back(Instruction("BIT 0, B", 0, 8, &Cpu::bit0_b));			//0x40
 		ins.push_back(Instruction("BIT 0, C", 0, 8, &Cpu::bit0_c));
 		ins.push_back(Instruction("BIT 0, D", 0, 8, &Cpu::bit0_d));
 		ins.push_back(Instruction("BIT 0, E", 0, 8, &Cpu::bit0_e));
@@ -345,7 +345,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("BIT 1, L", 0, 8, &Cpu::bit1_l));
 		ins.push_back(Instruction("BIT 1, (HL)", 0, 16, &Cpu::bit1_hlp));
 		ins.push_back(Instruction("BIT 1, A", 0, 8, &Cpu::bit1_a));
-		ins.push_back(Instruction("BIT 2, B", 0, 8, &Cpu::bit2_b));
+		ins.push_back(Instruction("BIT 2, B", 0, 8, &Cpu::bit2_b));		//0x50
 		ins.push_back(Instruction("BIT 2, C", 0, 8, &Cpu::bit2_c));
 		ins.push_back(Instruction("BIT 2, D", 0, 8, &Cpu::bit2_d));
 		ins.push_back(Instruction("BIT 2, E", 0, 8, &Cpu::bit2_e));
@@ -361,7 +361,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("BIT 3, L", 0, 8, &Cpu::bit3_l));
 		ins.push_back(Instruction("BIT 3, (HL)", 0, 16, &Cpu::bit3_hlp));
 		ins.push_back(Instruction("BIT 3, A", 0, 8, &Cpu::bit3_a));
-		ins.push_back(Instruction("BIT 4, B", 0, 8, &Cpu::bit4_b));
+		ins.push_back(Instruction("BIT 4, B", 0, 8, &Cpu::bit4_b));		//0x60
 		ins.push_back(Instruction("BIT 4, C", 0, 8, &Cpu::bit4_c));
 		ins.push_back(Instruction("BIT 4, D", 0, 8, &Cpu::bit4_d));
 		ins.push_back(Instruction("BIT 4, E", 0, 8, &Cpu::bit4_e));
@@ -377,7 +377,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("BIT 5, L", 0, 8, &Cpu::bit5_l));
 		ins.push_back(Instruction("BIT 5, (HL)", 0, 16, &Cpu::bit5_hlp));
 		ins.push_back(Instruction("BIT 5, A", 0, 8, &Cpu::bit5_a));
-		ins.push_back(Instruction("BIT 6, B", 0, 8, &Cpu::bit6_b));
+		ins.push_back(Instruction("BIT 6, B", 0, 8, &Cpu::bit6_b));		//0x70
 		ins.push_back(Instruction("BIT 6, C", 0, 8, &Cpu::bit6_c));
 		ins.push_back(Instruction("BIT 6, D", 0, 8, &Cpu::bit6_d));
 		ins.push_back(Instruction("BIT 6, E", 0, 8, &Cpu::bit6_e));
@@ -393,7 +393,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("BIT 7, L", 0, 8, &Cpu::bit7_l));
 		ins.push_back(Instruction("BIT 7, (HL)", 0, 16, &Cpu::bit7_hlp));
 		ins.push_back(Instruction("BIT 7, A", 0, 8, &Cpu::bit7_a));
-		ins.push_back(Instruction("RES 0, B", 0, 8, &Cpu::res0_b));
+		ins.push_back(Instruction("RES 0, B", 0, 8, &Cpu::res0_b));		//0x80
 		ins.push_back(Instruction("RES 0, C", 0, 8, &Cpu::res0_c));
 		ins.push_back(Instruction("RES 0, D", 0, 8, &Cpu::res0_d));
 		ins.push_back(Instruction("RES 0, E", 0, 8, &Cpu::res0_e));
@@ -409,7 +409,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("RES 1, L", 0, 8, &Cpu::res1_l));
 		ins.push_back(Instruction("RES 1, (HL)", 0, 16, &Cpu::res1_hlp));
 		ins.push_back(Instruction("RES 1, A", 0, 8, &Cpu::res1_a));
-		ins.push_back(Instruction("RES 2, B", 0, 8, &Cpu::res2_b));
+		ins.push_back(Instruction("RES 2, B", 0, 8, &Cpu::res2_b));		//0x90
 		ins.push_back(Instruction("RES 2, C", 0, 8, &Cpu::res2_c));
 		ins.push_back(Instruction("RES 2, D", 0, 8, &Cpu::res2_d));
 		ins.push_back(Instruction("RES 2, E", 0, 8, &Cpu::res2_e));
@@ -425,7 +425,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("RES 3, L", 0, 8, &Cpu::res3_l));
 		ins.push_back(Instruction("RES 3, (HL)", 0, 16, &Cpu::res3_hlp));
 		ins.push_back(Instruction("RES 3, A", 0, 8, &Cpu::res3_a));
-		ins.push_back(Instruction("RES 4, B", 0, 8, &Cpu::res4_b));
+		ins.push_back(Instruction("RES 4, B", 0, 8, &Cpu::res4_b));		//0xA0
 		ins.push_back(Instruction("RES 4, C", 0, 8, &Cpu::res4_c));
 		ins.push_back(Instruction("RES 4, D", 0, 8, &Cpu::res4_d));
 		ins.push_back(Instruction("RES 4, E", 0, 8, &Cpu::res4_e));
@@ -441,7 +441,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("RES 5, L", 0, 8, &Cpu::res5_l));
 		ins.push_back(Instruction("RES 5, (HL)", 0, 16, &Cpu::res5_hlp));
 		ins.push_back(Instruction("RES 5, A", 0, 8, &Cpu::res5_a));
-		ins.push_back(Instruction("RES 6, B", 0, 8, &Cpu::res6_b));
+		ins.push_back(Instruction("RES 6, B", 0, 8, &Cpu::res6_b));		//0xB0
 		ins.push_back(Instruction("RES 6, C", 0, 8, &Cpu::res6_c));
 		ins.push_back(Instruction("RES 6, D", 0, 8, &Cpu::res6_d));
 		ins.push_back(Instruction("RES 6, E", 0, 8, &Cpu::res6_e));
@@ -457,7 +457,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("RES 7, L", 0, 8, &Cpu::res7_l));
 		ins.push_back(Instruction("RES 7, (HL)", 0, 16, &Cpu::res7_hlp));
 		ins.push_back(Instruction("RES 7, A", 0, 8, &Cpu::res7_a));
-		ins.push_back(Instruction("SET 0, B", 0, 8, &Cpu::set0_b));
+		ins.push_back(Instruction("SET 0, B", 0, 8, &Cpu::set0_b));		//0xC0
 		ins.push_back(Instruction("SET 0, C", 0, 8, &Cpu::set0_c));
 		ins.push_back(Instruction("SET 0, D", 0, 8, &Cpu::set0_d));
 		ins.push_back(Instruction("SET 0, E", 0, 8, &Cpu::set0_e));
@@ -473,7 +473,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("SET 1, L", 0, 8, &Cpu::set1_l));
 		ins.push_back(Instruction("SET 1, (HL)", 0, 16, &Cpu::set1_hlp));
 		ins.push_back(Instruction("SET 1, A", 0, 8, &Cpu::set1_a));
-		ins.push_back(Instruction("SET 2, B", 0, 8, &Cpu::set2_b));
+		ins.push_back(Instruction("SET 2, B", 0, 8, &Cpu::set2_b));		//0xD0
 		ins.push_back(Instruction("SET 2, C", 0, 8, &Cpu::set2_c));
 		ins.push_back(Instruction("SET 2, D", 0, 8, &Cpu::set2_d));
 		ins.push_back(Instruction("SET 2, E", 0, 8, &Cpu::set2_e));
@@ -489,7 +489,7 @@ namespace Opcodes {
 		ins.push_back(Instruction("SET 3, L", 0, 8, &Cpu::set3_l));
 		ins.push_back(Instruction("SET 3, (HL)", 0, 16, &Cpu::set3_hlp));
 		ins.push_back(Instruction("SET 3, A", 0, 8, &Cpu::set3_a));
-		ins.push_back(Instruction("SET 4, B", 0, 8, &Cpu::set4_b));
+		ins.push_back(Instruction("SET 4, B", 0, 8, &Cpu::set4_b));		//0xE0
 		ins.push_back(Instruction("SET 4, C", 0, 8, &Cpu::set4_c));
 		ins.push_back(Instruction("SET 4, D", 0, 8, &Cpu::set4_d));
 		ins.push_back(Instruction("SET 4, E", 0, 8, &Cpu::set4_e));
@@ -504,8 +504,8 @@ namespace Opcodes {
 		ins.push_back(Instruction("SET 5, H", 0, 8, &Cpu::set5_h));
 		ins.push_back(Instruction("SET 5, L", 0, 8, &Cpu::set5_l));
 		ins.push_back(Instruction("SET 5, (HL)", 0, 16, &Cpu::set5_hlp));
-		ins.push_back(Instruction("SET 5, A", 0, 8, &Cpu::set5_a));
-		ins.push_back(Instruction("SET 6, B", 0, 8, &Cpu::set6_b));
+		ins.push_back(Instruction("SET 5, A", 0, 8, &Cpu::set5_a));	
+		ins.push_back(Instruction("SET 6, B", 0, 8, &Cpu::set6_b));		//0xF0
 		ins.push_back(Instruction("SET 6, C", 0, 8, &Cpu::set6_c));
 		ins.push_back(Instruction("SET 6, D", 0, 8, &Cpu::set6_d));
 		ins.push_back(Instruction("SET 6, E", 0, 8, &Cpu::set6_e));

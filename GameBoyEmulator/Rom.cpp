@@ -127,6 +127,7 @@ bool Cartridge::loadBank0() {
 	}
 	romSize = (RomSize)romBank0[CartAddress::RomSize];
 	ramSize = (RamSize)romBank0[CartAddress::RamSize];
+	sRamBankX = std::vector<unsigned char>(0x2000, 0);
 	return true;
 }
 

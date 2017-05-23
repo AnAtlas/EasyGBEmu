@@ -18,6 +18,11 @@ enum Address {
 	Oam = 0xFE00,
 	Blank = 0xFEA0,
 	IoPorts = 0xFF00,
+	P1 = 0xFF00,			//P1 Register for reading joypad info
+	DivReg = 0xFF04,		//DIV
+	TimerCounter = 0xFF05,	//TIMA
+	TimerModulo = 0xFF06,	//TMA
+	TimerControl = 0xFF07,	//TAC
 	IntFlags = 0xFF0F,
 	LcdControl = 0xFF40,
 	LcdStatus = 0xFF41,
@@ -77,6 +82,12 @@ public:
 	unsigned char readByte(unsigned short address);
 	unsigned short readShort(unsigned short address);
 	unsigned short readShortFromStack(unsigned short* spRegister);
+
+	//Timer specific functions
+	void writeByteTimer(unsigned short address, unsigned char value);
+
+	//Gpu specific functions
+	void writeByteGpu(unsigned short address, unsigned char value);
 
 	unsigned char* getBytePointer(unsigned short address);
 	void printMemory(unsigned char arrayIndex);

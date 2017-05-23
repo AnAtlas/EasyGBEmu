@@ -33,8 +33,8 @@ private:
 	FILE* logFile;
 	bool stopped;
 	bool halted;
-	bool jumped;
 	bool cbMode;
+	unsigned int opsRan;
 	bool masterInterruptEnable;
 	bool pendingMasterInterruptEnable;
 	bool pendingMasterInterruptDisable;

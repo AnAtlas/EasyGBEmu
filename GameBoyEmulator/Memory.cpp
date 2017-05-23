@@ -51,14 +51,44 @@ void Memory::writeByte(unsigned short address, unsigned char value) {
 		cartridge->writeByte(address, value);
 		return;
 	}
+
 	//FF44 shows horizontal scanline being drawn, writing here resets to 0
-	//if (address == 0xFF44) {
-		//memory.totalMemory[0xFF44] = 0;
-	//	return;
-	//}
+	if (address == Address::LineY) {
+		memory.totalMemory[Address::LineY] = 0;
+		return;
+	}
+	//Writing to div address, resets timer to 0
+	if (address == Address::DivReg) {
+		memory.totalMemory[Address::DivReg] = 0;
+		return;
+	}
 	if (inBios && address == Address::ExitBios)
 		inBios = false;
+
+	//DEREK FIX THIS WITH INPUTS
+	if (address == Address::P1)
+		int a = 0;
 	memory.totalMemory[address] = value;
+}
+
+void Memory::writeByteTimer(unsigned short address, unsigned char value) {
+	if (address == Address::DivReg) {
+		memory.totalMemory[Address::DivReg] = value;
+		return;
+	}
+	if (address == Address::TimerCounter) {
+		memory.totalMemory[Address::TimerCounter] = value;
+		return;
+	}
+	std::cout << "writeByteTimer ERROR" << std::endl;
+}
+
+void Memory::writeByteGpu(unsigned short address, unsigned char value) {
+	if (address == Address::LineY) {
+		memory.totalMemory[Address::LineY] = value;
+		return;
+	}
+	std::cout << "writeByteGpu ERROR" << std::endl;
 }
 
 void Memory::writeShort(unsigned short address, unsigned short value) {
@@ -77,6 +107,10 @@ unsigned char Memory::readByte(unsigned short address) {
 	}
 	if ((inBios && address >= 0x100 && addressOnCartridge(address)) || (!inBios && addressOnCartridge(address)))
 		return cartridge->readByte(address);
+
+	//DEREK TODO FIX THIS WITH INPUTS
+	if (address == Address::P1)
+		return 0xDF;
 	return memory.totalMemory[address];
 }
 
@@ -104,7 +138,7 @@ unsigned char* Memory::getBytePointer(unsigned short address) {
 
 void Memory::resetIO() {
 	if (inBios) {
-		memory.totalMemory[0xFF00] = 0x00;
+		memory.totalMemory[0xFF00] = 0xFF;
 		memory.totalMemory[0xFF05] = 0x00;
 		memory.totalMemory[0xFF06] = 0x00;
 		memory.totalMemory[0xFF07] = 0x00;

@@ -22,7 +22,6 @@ Gpu::Gpu(sf::RenderWindow* window): window(window) {
 			frameBuffer[i * SCREEN_WIDTH + j] = palette[Color::White];
 		}
 	}
-	//memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
 	renderTexture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
 	renderTexture.setSmooth(false);
 	renderTexture.update(tFrameBuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
@@ -33,55 +32,72 @@ void Gpu::linkMemory(Memory* memory) {
 	this->memory = memory;
 }
 
+void Gpu::setLCDMode(unsigned char mode) {
+	unsigned char stat = memory->readByte(Address::LcdStatus);
+	stat &= 0xFC;
+	memory->writeByte(Address::LcdStatus, stat | (mode & 0b11));
+}
+GPUMode Gpu::getLCDMode() {
+	return (GPUMode)(memory->readByte(Address::LcdStatus) & 0b11);
+}
+
+void Gpu::requestInterrupt(int bit) {
+	unsigned char reqFlags = memory->readByte(Address::IntFlags);
+	reqFlags |= (1 << bit);
+	memory->writeByte(Address::IntFlags, reqFlags);
+}
+
 void Gpu::step(unsigned char ticks) {
 	unsigned char lcdControlRegister = memory->readByte(Address::LcdControl);
+	unsigned char lcdStatus = memory->readByte(Address::LcdStatus);
 	unsigned char lineY = memory->readByte(Address::LineY);
 
-	if (!(lcdControlRegister && LCDControlFlags::DisplayEnable))
+	if (!(lcdControlRegister & LCDControlFlags::DisplayEnable)) {
+		memory->writeByteGpu(Address::LineY, 0x00);
+		setLCDMode(GPUMode::VBlank);
 		return;
+	}
+		
 	modeClock += ticks;
+	unsigned char mode = memory->readByte(Address::LcdStatus) & 0b11;
+	bool reqInt = false;
 
-	switch (gpuMode) {
+	switch (mode) {
 		//HBlank after last hblank, push screen to texture
 	case GPUMode::HBlank:
 		if (modeClock >= GPUTimings::HBlank) {
 			modeClock = 0;
-			memory->writeByte(Address::LineY, memory->readByte(Address::LineY) + 1);
+			memory->writeByteGpu(Address::LineY, memory->readByte(Address::LineY) + 1);
 			if (memory->readByte(Address::LineY) == 143) {
 				//Enter VBlank
-				gpuMode = GPUMode::VBlank;
-				
+				setLCDMode(GPUMode::VBlank);
+
+				//Vblank interrupt
+				requestInterrupt(0);
+				reqInt = lcdStatus & (1 << 4);
+
 				//Push framebuffer to screen
 				memcpy(tFrameBuffer, frameBuffer, SCREEN_HEIGHT * SCREEN_WIDTH * 4);
 				renderTexture.update(tFrameBuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
-				int a = 0;
-				if (a == 1) {
-					FILE* memFile;
-					memFile = std::fopen("gpuLogFrameBuffer.log", "w");
-					std::fwrite(frameBuffer, sizeof(unsigned char), SCREEN_HEIGHT * SCREEN_WIDTH * 4, memFile);
-					std::fclose(memFile);
-				}
-				if (a == 1) {
-					FILE* memFile;
-					memFile = std::fopen("gpuLogtFrameBuffer.log", "w");
-					std::fwrite(tFrameBuffer, sizeof(unsigned char), SCREEN_HEIGHT * SCREEN_WIDTH * 4, memFile);
-					std::fclose(memFile);
-				}
 				window->clear();
 				window->draw(draw);
 				window->display();
 			}
-			else
-				gpuMode = GPUMode::OAM;
+			else {
+				setLCDMode(GPUMode::OAM);
+				reqInt = lcdStatus & (1 << 5);
+			}
+				
 		}
 		break;
 
 	case GPUMode::VBlank:
 		if (modeClock >= GPUTimings::VBlank) {
 			modeClock = 0;
-			memory->writeByte(Address::LineY, memory->readByte(Address::LineY) + 1);
+			memory->writeByteGpu(Address::LineY, memory->readByte(Address::LineY) + 1);
 			if (memory->readByte(Address::LineY) > 153) {
-				gpuMode = GPUMode::OAM;
+				setLCDMode(GPUMode::OAM);
+				reqInt = lcdStatus & (1 << 5);
 				memory->writeByte(Address::LineY, 0);
 			}
 		}
@@ -90,33 +106,34 @@ void Gpu::step(unsigned char ticks) {
 	case GPUMode::OAM:
 		if (modeClock >= GPUTimings::AccessOAM) {
 			modeClock = 0;
-			gpuMode = GPUMode::VRAM;
+			setLCDMode(GPUMode::VRAM);
 		}
 		break;
 
 	case GPUMode::VRAM:
 		if (modeClock >= GPUTimings::AccessVRAM) {
 			modeClock = 0;
-			gpuMode = GPUMode::HBlank;
+			setLCDMode(GPUMode::HBlank);
+			reqInt = lcdStatus & (1 << 3);
 
 			renderScanLine();
 		}
 	}
-	memory->writeByte(Address::LcdStatus, (memory->readByte(Address::LcdStatus) & 0xFC) | (gpuMode & 0x3));
-}
 
-void Gpu::updateTile(unsigned short address, unsigned char value) {
-	address &= 0x1FFE;
+	if (reqInt)
+		requestInterrupt(1);
 
-	unsigned short tile = (address >> 4) & 551;
-	unsigned short y = (address >> 1) & 7;
+	//Check for coincidence flag
+	if (lineY == memory->readByte(Address::LYC)) {
+		lcdStatus = memory->readByte(Address::LcdStatus) | (1 << 2);
 
-	unsigned char x, bitIndex;
-	for (x = 0; x < 8; x++) {
-		bitIndex = 1 << (7 - x);
-
-		tiles[tile][y][x] = ((memory->readByte(address) & bitIndex) ? 1 : 0) + ((memory->readByte(address + 1) & bitIndex) ? 2 : 0);
+		if (lcdStatus & (1 << 6))
+			requestInterrupt(1);
 	}
+	else
+		lcdStatus = memory->readByte(Address::LcdStatus) & 0b11111011;
+
+	memory->writeByte(Address::LcdStatus, lcdStatus);
 }
 
 Color Gpu::getBackgroundPaletteShade(Color color) {
@@ -133,7 +150,107 @@ Color Gpu::getBackgroundPaletteShade(Color color) {
 	return Color::White;
 }
 
+Color Gpu::getObjectPaletteShade(Color color, bool paletteIndex) {
+	unsigned char objPaletteData;
+	if (paletteIndex)
+		objPaletteData = memory->readByte(Address::ObjectPalette1);
+	else
+		objPaletteData = memory->readByte(Address::ObjectPalette0);
+	if (color == Color::White)
+		return (Color)(objPaletteData & 0x3);
+	if (color == Color::LightGray)
+		return (Color)((objPaletteData & 0xC) >> 2);
+	if (color == Color::DarkGray)
+		return (Color)((objPaletteData & 0x30) >> 4);
+	if (color == Color::Black)
+		return (Color)((objPaletteData & 0xC0) >> 6);
+
+	return Color::White;
+}
+
 void Gpu::renderScanLine() {
+	renderBackground();
+	renderSprites();
+}
+
+void Gpu::renderSprites() {
+	
+	unsigned char lcdControl = memory->readByte(Address::LcdControl);
+	unsigned char lineY = memory->readByte(Address::LineY);
+
+	//Check if sprites are enabled
+	if (!(lcdControl & LCDControlFlags::ObjectDisplayEnable))
+		return;
+
+	bool use8x16 = false;
+	if (lcdControl & LCDControlFlags::ObjectSize)
+		use8x16 = true;
+
+	//Only allow 40 sprites per x line
+	for (int sprite = 0; sprite < 40; sprite++) {
+		unsigned char index = sprite * 4;
+		unsigned char yPos = memory->readByte(Address::Oam + index) - 16;
+		unsigned char xPos = memory->readByte(Address::Oam + index + 1) - 8;
+		unsigned char tileLocation = memory->readByte(Address::Oam + index + 2);
+		unsigned char attributes = memory->readByte(Address::Oam + index + 3);
+
+		bool yFlip = attributes & Sprite::AttributeFlags::Yflip;
+		bool xFlip = attributes & Sprite::AttributeFlags::Xflip;
+
+		int scanline = memory->readByte(Address::LineY);
+
+		int ysize = 8;
+
+		if (use8x16)
+			ysize = 16;
+
+		if ((scanline >= yPos) && (scanline < (yPos + ysize))) {
+			int line = scanline - yPos;
+
+			if (yFlip){
+				line -= ysize;
+				line *= -1;
+			}
+			 
+			line *= 2;
+			unsigned char data1 = memory->readByte((Address::Vram + (tileLocation * 16)) + line);
+			unsigned char data2 = memory->readByte((Address::Vram + (tileLocation * 16)) + line + 1);
+
+			for (int tilePixel = 7; tilePixel >= 0; tilePixel--) {
+				int colorbit = tilePixel;
+				if (xFlip) {
+					colorbit -= 7;
+					colorbit *= -1;
+				}
+				int colorNum = (data2 & (1 << colorbit)) >> colorbit;
+				colorNum <<= 1;
+				colorNum |= (data1 & (1 << colorbit)) >> colorbit;
+
+				Color color = (Color)(colorNum);
+
+				color = getObjectPaletteShade(color, attributes & Sprite::AttributeFlags::PaletteNumber);
+
+				int xPix = 0 - tilePixel;
+				xPix += 7;
+
+				int pixel = xPos + xPix;
+
+				if (attributes & Sprite::AttributeFlags::Priority) {
+					if (frameBuffer[lineY * SCREEN_WIDTH + pixel].r != 255)
+						continue;
+				}
+
+				frameBuffer[lineY * SCREEN_WIDTH + pixel] = palette[color];
+			}
+		}
+	}
+}
+
+void Gpu::renderBackground() {
+
+	//check if Background is enabled
+	if (!(memory->readByte(Address::LcdControl) & LCDControlFlags::BackgroundDisplay))
+		return;
 	bool unsignedIndex = true;
 	bool usingWindow = false;
 	unsigned short tileData = 0;
@@ -224,6 +341,6 @@ void Gpu::renderScanLine() {
 
 		Color color = (Color)(colorNum);
 
-		frameBuffer[lineY * SCREEN_WIDTH  + pixel ] = palette[getBackgroundPaletteShade(color)];
+		frameBuffer[lineY * SCREEN_WIDTH + pixel] = palette[getBackgroundPaletteShade(color)];
 	}
 }

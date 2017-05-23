@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "Gameboy.hpp"
+#include "Debug.hpp"
 
 bool running = true;
 
@@ -32,7 +33,7 @@ int main()
 	freopen("CONOUT$", "w", stderr);
 	freopen("CONIN$", "r", stdin);
 
-	gameboy->insertRom("TestRoms/10-bit ops.gb");
+	gameboy->insertRom("TestRoms/Dr. Mario (World).gb");
 
 	std::thread console(consoleInput, &window, gameboy);
 	std::thread gb(&Gameboy::play, gameboy);
@@ -47,6 +48,7 @@ int main()
 		}
 	}
 	Sleep(200);
+	DebugLogMessageClose();
 	gameboy->shutDown();
 	return 0;
 }

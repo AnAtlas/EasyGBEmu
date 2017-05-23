@@ -164,6 +164,7 @@
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Opcodes.cpp" />
     <ClCompile Include="Rom.cpp" />
+    <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cpu.hpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Opcodes.hpp" />
     <ClInclude Include="Registers.hpp" />
     <ClInclude Include="Rom.hpp" />
+    <ClInclude Include="Timer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

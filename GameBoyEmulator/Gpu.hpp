@@ -7,12 +7,12 @@ struct Sprite {
 			unsigned char y;
 			unsigned char x;
 			unsigned char patternNumber;
-			unsigned char flags;
+			unsigned char attributes;
 		};
 		unsigned int block;
 	};
 	
-	enum Flags {
+	enum AttributeFlags {
 		Priority = (1 << 7),
 		Yflip = (1 << 6),
 		Xflip = (1 << 5),
@@ -75,8 +75,15 @@ private:
 	unsigned char currentLine;
 
 	void renderScanLine();
+	void setLCDMode(unsigned char mode);
+	GPUMode getLCDMode();
+	void requestInterrupt(int bit);
+	void renderBackground();
+	void renderSprites();
 	void compareLYToLYC();
+	void updateLCDStatus();
 	Color getBackgroundPaletteShade(Color color);
+	Color getObjectPaletteShade(Color color, bool paletteIndex);
 public:
 	Gpu(sf::RenderWindow* window);
 	void linkMemory(Memory* memory);

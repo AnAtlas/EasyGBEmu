@@ -120,7 +120,7 @@ void Emulator::ExecuteOpcode(BYTE opcode)
 		case 0xE5: PushWordOntoStack( m_RegisterHL.reg ) ; m_CyclesThisUpdate+=16 ; break;
 
 		// pop word from stack into reg
-		case 0xF1: m_RegisterAF.reg = PopWordOffStack( ) ; m_CyclesThisUpdate+=12 ;break;
+		case 0xF1: m_RegisterAF.reg = (PopWordOffStack( ) & 0xFFF0) ; m_CyclesThisUpdate+=12 ;break;
 		case 0xC1: m_RegisterBC.reg = PopWordOffStack( ) ; m_CyclesThisUpdate+=12 ;break;
 		case 0xD1: m_RegisterDE.reg = PopWordOffStack( ) ; m_CyclesThisUpdate+=12 ;break;
 		case 0xE1: m_RegisterHL.reg = PopWordOffStack( ) ; m_CyclesThisUpdate+=12 ; break;
@@ -487,7 +487,8 @@ void Emulator::ExecuteExtendedOpcode( )
 	if ((m_ProgramCounter >= 0x4000 && m_ProgramCounter <= 0x7FFF) || (m_ProgramCounter >= 0xA000 && m_ProgramCounter <= 0xBFFF))
 		opcode = ReadMemory(m_ProgramCounter) ;
 
-	if (true)
+	//DEREK
+	if (false)
 	{
 		char buffer[200] ;
 		sprintf(buffer, "-OP = %x PC = %x AF = %x BC = %x DE = %x HL = %x\n", opcode, m_ProgramCounter, m_RegisterAF.reg, m_RegisterBC.reg, m_RegisterDE.reg, m_RegisterHL.reg);
