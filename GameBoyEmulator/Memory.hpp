@@ -67,8 +67,10 @@ private:
 	FILE* logFile;
 	bool logFileOpen;
 	bool inBios;
+	
 	void copy(unsigned short destination, unsigned short source, size_t length);
 	bool addressOnCartridge(unsigned short address);
+	
 public:
 	Memory(bool runBios);
 	void linkRom(Rom* rom) { this->cartridge = rom; }
@@ -78,6 +80,9 @@ public:
 	void writeByte(unsigned short address, unsigned char value);
 	void writeShort(unsigned short address, unsigned short value);
 	void writeShortToStack(unsigned short value, unsigned short* spRegister);
+
+	unsigned char inputRow1;
+	unsigned char inputRow2;
 
 	unsigned char readByte(unsigned short address);
 	unsigned short readShort(unsigned short address);
@@ -91,4 +96,6 @@ public:
 
 	unsigned char* getBytePointer(unsigned short address);
 	void printMemory(unsigned char arrayIndex);
+
+	void requestInterrupt(int bit);
 };

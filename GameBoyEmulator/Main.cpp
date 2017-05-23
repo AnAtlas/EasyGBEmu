@@ -8,7 +8,7 @@
 
 bool running = true;
 
-bool runBios = true;
+bool runBios = false;
 
 void consoleInput(sf::RenderWindow* window, Gameboy* gameboy) {
 	while (window->isOpen()) {
@@ -33,7 +33,7 @@ int main()
 	freopen("CONOUT$", "w", stderr);
 	freopen("CONIN$", "r", stdin);
 
-	gameboy->insertRom("TestRoms/Dr. Mario (World).gb");
+	gameboy->insertRom("TestRoms/Tetris.gb");
 
 	std::thread console(consoleInput, &window, gameboy);
 	std::thread gb(&Gameboy::play, gameboy);
@@ -45,6 +45,10 @@ int main()
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
+			if (event.type == sf::Event::KeyPressed)
+				gameboy->buttonDown(event.key.code);
+			if (event.type == sf::Event::KeyReleased)
+				gameboy->buttonUp(event.key.code);
 		}
 	}
 	Sleep(200);

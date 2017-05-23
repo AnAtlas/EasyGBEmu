@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Window.hpp"
 #include <thread>
 
 class Memory;
@@ -34,4 +35,6 @@ public:
 	void play();
 	void shutDown();
 	void runOpcode(std::string com);
+	void buttonDown(sf::Keyboard::Key);
+	void buttonUp(sf::Keyboard::Key);
 };

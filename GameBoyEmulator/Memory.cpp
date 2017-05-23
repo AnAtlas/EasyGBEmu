@@ -29,6 +29,8 @@ Memory::Memory(bool runBios) {
 	memcpy(memory.totalMemory, bios, sizeof(bios));
 	inBios = runBios;
 	logFileOpen = false;
+	inputRow1 = 0xFF; // Start Select B A
+	inputRow2 = 0xFF; // Down Up Left Right
 }
 
 void Memory::copy(unsigned short destination, unsigned short source, size_t length) {
@@ -41,6 +43,13 @@ void Memory::copy(unsigned short destination, unsigned short source, size_t leng
 void Memory::biosFinished() {
 	inBios = false;
 }
+
+void Memory::requestInterrupt(int bit) {
+	unsigned char reqFlags = readByte(Address::IntFlags);
+	reqFlags |= (1 << bit);
+	writeByte(Address::IntFlags, reqFlags);
+}
+
 void Memory::writeByte(unsigned short address, unsigned char value) {
 	if (address >= Address::Echo && address < Address::Oam) {
 		memory.wram[address - Address::Echo] = value;
@@ -62,12 +71,18 @@ void Memory::writeByte(unsigned short address, unsigned char value) {
 		memory.totalMemory[Address::DivReg] = 0;
 		return;
 	}
+	
+	//You can only write to bits 4 and 5, 6 and 7 always return 1
+	if (address == Address::P1) {
+		value &= 0x30;
+		value |= 0xC0; //turn on bits 6 and 7
+		memory.totalMemory[Address::P1] &= 0b00001111;
+		memory.totalMemory[Address::P1] |= value;
+		return;
+	}
+
 	if (inBios && address == Address::ExitBios)
 		inBios = false;
-
-	//DEREK FIX THIS WITH INPUTS
-	if (address == Address::P1)
-		int a = 0;
 	memory.totalMemory[address] = value;
 }
 
@@ -108,9 +123,21 @@ unsigned char Memory::readByte(unsigned short address) {
 	if ((inBios && address >= 0x100 && addressOnCartridge(address)) || (!inBios && addressOnCartridge(address)))
 		return cartridge->readByte(address);
 
-	//DEREK TODO FIX THIS WITH INPUTS
-	if (address == Address::P1)
-		return 0xDF;
+	if (address == Address::P1) {
+		unsigned char ret = 0b11000000;
+		unsigned char keyReq = memory.totalMemory[Address::P1];
+		ret |= (keyReq & 0b00110000);
+		if (!(keyReq & (1 << 5))) { // Directionals selected, row 2
+			ret |= (inputRow2 & 0xF);
+		}
+		if (!(keyReq & (1 << 4))) {
+			ret |= (inputRow1 & 0xF);
+		}
+		if ((inputRow1 & 0xF) != 0xF || (inputRow2 & 0xF) != 0xF)
+			int a = 0;
+		return ret;
+	}
+
 	return memory.totalMemory[address];
 }
 
